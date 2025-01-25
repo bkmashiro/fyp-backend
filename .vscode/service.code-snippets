@@ -1,0 +1,54 @@
+{
+	"FC Service": {
+		"scope": "javascript,typescript",
+		"prefix": "ss",
+		"body": [
+			"import { Injectable } from '@nestjs/common'",
+			"import { FCService } from '@/modules/faster-crud'",
+			"import { ${1:${TM_FILENAME_BASE/([a-z])([a-z]*)-?(?:\\.service)?/${1:/capitalize}${2:/downcase}/g}} } from './entities/${2:${TM_FILENAME_BASE/(.*)\\.service/$1/}}.entity'",
+			"",
+			"@Injectable()",
+			"export class ${3:${TM_FILENAME_BASE/([a-z])([a-z]*)-?(?:\\.service)?/${1:/capitalize}${2:/downcase}/g}}Service extends FCService(${4:${TM_FILENAME_BASE/([a-z])([a-z]*)-?(?:\\.service)?/${1:/capitalize}${2:/downcase}/g}}) {}",
+			
+		],
+		"description": "Create a new faster crud service"
+	},
+	
+	"FC Controller": {
+		"scope": "javascript,typescript",
+		"prefix": "cc",
+		"body": [
+			"import { FCController, FC } from '@/modules/faster-crud'",
+			"import { ${1:${TM_FILENAME_BASE/([a-z])([a-z]*)-?(?:\\.controller)?/${1:/capitalize}${2:/downcase}/g}}Service } from './${2:${TM_FILENAME_BASE/(.*)\\.controller/$1/}}.service'",
+			"import { ${3:${TM_FILENAME_BASE/([a-z])([a-z]*)-?(?:\\.controller)?/${1:/capitalize}${2:/downcase}/g}} } from './entities/${2:${TM_FILENAME_BASE/(.*)\\.controller/$1/}}.entity'",
+			"",
+			"@FC(${4:${TM_FILENAME_BASE/([a-z])([a-z]*)-?(?:\\.controller)?/${1:/capitalize}${2:/downcase}/g}})",
+			"export class ${4:${TM_FILENAME_BASE/([a-z])([a-z]*)-?(?:\\.controller)?/${1:/capitalize}${2:/downcase}/g}}Controller extends FCController(${4/(.*)/${1:/capitalize}/}Service) {}"
+		],
+		"description": "Create a new faster crud controller"
+	},
+
+	"FC Hint": {
+		"scope": "javascript,typescript",
+		"prefix": "hh",
+		"body": [
+			"@Hint('${1:hint}')",
+		],
+		"description": "Create a new faster crud hint"
+	},
+
+	// "FC Test": {
+	// 	"scope": "javascript,typescript",
+	// 	"prefix": "tt",
+	// 	"body": [
+	// 		// capitalize the file name (not working for kebab case)
+	// 		"${1:${TM_FILENAME_BASE/(.*).controller/${1:/capitalize}/}}", 
+	// 		// extract kebab only
+	// 		"${2:${TM_FILENAME_BASE/(.*)\\.controller/$1/}}",
+	// 		// kebab to Pascal
+	// 		"${3:${TM_FILENAME_BASE/([a-z])([a-z]*)-?(?:\\.controller)?/${1:/capitalize}${2:/downcase}/g}}",
+	// 		// kebab to camel 
+	// 		"${4:${TM_FILENAME_BASE/([a-z])([a-z]*)-([a-z])([a-z]*)?(?:\\.controller)?/$1$2${3:/capitalize}${4:/downcase}/g}}"
+	// 	]
+	// },
+}
