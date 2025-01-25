@@ -23,6 +23,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.735.0",
     "@hashgraph/sdk": "^2.56.0",
     "@hey-api/client-axios": "^0.2.3",
     "@hey-api/client-fetch": "^0.2.4",
