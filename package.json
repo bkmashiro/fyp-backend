@@ -23,6 +23,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@hashgraph/sdk": "^2.56.0",
     "@hey-api/client-axios": "^0.2.3",
     "@hey-api/client-fetch": "^0.2.4",
     "@nestjs/common": "^10.0.0",

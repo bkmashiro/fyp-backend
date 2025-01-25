@@ -15,6 +15,11 @@ import { TestModule } from './modules/test/test.module'
 import { InitDbService } from './modules/db/init_db/init_db.service'
 import { FileModule } from './modules/file/file.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ConsensusModule } from './modules/consensus/consensus.module';
+import { GeoObjectModule } from './modules/geo-object/geo-object.module';
+import { GeoImageModule } from './modules/geo-image/geo-image.module';
+import { GeoCommentModule } from './modules/geo-comment/geo-comment.module';
+import { StoryboardModule } from './modules/storyboard/storyboard.module';
 
 @Module({
   imports: [
@@ -78,6 +83,11 @@ import { ServeStaticModule } from '@nestjs/serve-static';
       }])
     }),
     FileModule,
+    ConsensusModule,
+    GeoObjectModule,
+    GeoImageModule,
+    GeoCommentModule,
+    StoryboardModule,
   ],
   controllers: [AppController],
   providers: [AppService, InitDbService],
