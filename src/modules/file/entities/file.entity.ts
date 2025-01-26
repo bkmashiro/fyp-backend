@@ -1,16 +1,15 @@
-/**
- * {
-      key: uniqueSuffix,
-      originalName: file.originalname,
-      size: file.size,
-      mimeType: file.mimetype,
-    }
- */
-
-import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm'
+import { User } from '@/modules/user/entities/user.entity'
+import { TimedEntity } from '@/shared/entities/TimedEntity'
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryColumn,
+} from 'typeorm'
 
 @Entity()
-export class File {
+export class File extends TimedEntity {
   @PrimaryColumn()
   key: string
   @Column()
@@ -19,4 +18,8 @@ export class File {
   size: number
   @Column()
   mimeType: string
+  @OneToMany(() => User, (user) => user.files)
+  user: User
+  @DeleteDateColumn()
+  deletedAt: Date
 }

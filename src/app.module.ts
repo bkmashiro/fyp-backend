@@ -20,6 +20,7 @@ import { GeoObjectModule } from './modules/geo-object/geo-object.module';
 import { GeoImageModule } from './modules/geo-image/geo-image.module';
 import { GeoCommentModule } from './modules/geo-comment/geo-comment.module';
 import { StoryboardModule } from './modules/storyboard/storyboard.module';
+import { SceneModule } from './modules/scene/scene.module';
 
 @Module({
   imports: [
@@ -88,6 +89,7 @@ import { StoryboardModule } from './modules/storyboard/storyboard.module';
     GeoImageModule,
     GeoCommentModule,
     StoryboardModule,
+    SceneModule,
   ],
   controllers: [AppController],
   providers: [AppService, InitDbService],
