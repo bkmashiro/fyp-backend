@@ -7,10 +7,7 @@ import { Repository } from 'typeorm'
 
 @Injectable()
 export class GeoObjectService {
-  constructor(
-    @InjectRepository(GeoObject)
-    private geoObjectRepository: Repository<GeoObject>,
-  ) {}
+  constructor() {}
 
   create(createGeoObjectDto: CreateGeoObjectDto) {
     return 'This action adds a new geoObject'
@@ -38,18 +35,18 @@ export class GeoObjectService {
     alt: number,
     radius: number,
   ) {
-    const objects = await this.geoObjectRepository
-      .createQueryBuilder('object')
-      .where(
-        `ST_DWithin(
-          object.location::geography, 
-          ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, 
-          :radius
-        )`,
-        { lat, lon, alt, radius },
-      )
-      .getMany()
+    // const objects = await this.geoObjectRepository
+    //   .createQueryBuilder('object')
+    //   .where(
+    //     `ST_DWithin(
+    //       object.location::geography, 
+    //       ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography, 
+    //       :radius
+    //     )`,
+    //     { lat, lon, alt, radius },
+    //   )
+    //   .getMany()
 
-    return objects
+    // return objects
   }
 }

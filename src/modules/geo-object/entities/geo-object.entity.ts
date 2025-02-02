@@ -12,7 +12,7 @@ import {
 
 @Entity()
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
-export class GeoObject extends GeoEntity {
+export abstract class GeoObject extends GeoEntity {
   @Column({
     type: 'geometry',
     spatialFeatureType: 'Point',

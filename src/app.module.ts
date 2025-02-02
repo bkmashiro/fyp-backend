@@ -13,14 +13,14 @@ import { FasterCrudModule } from './modules/faster-crud/faster-crud.module'
 import { DataSource } from 'typeorm'
 import { TestModule } from './modules/test/test.module'
 import { InitDbService } from './modules/db/init_db/init_db.service'
-import { FileModule } from './modules/file/file.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { ConsensusModule } from './modules/consensus/consensus.module';
-import { GeoObjectModule } from './modules/geo-object/geo-object.module';
-import { GeoImageModule } from './modules/geo-image/geo-image.module';
-import { GeoCommentModule } from './modules/geo-comment/geo-comment.module';
-import { StoryboardModule } from './modules/storyboard/storyboard.module';
-import { SceneModule } from './modules/scene/scene.module';
+import { FileModule } from './modules/file/file.module'
+import { ServeStaticModule } from '@nestjs/serve-static'
+import { ConsensusModule } from './modules/consensus/consensus.module'
+import { GeoObjectModule } from './modules/geo-object/geo-object.module'
+import { GeoImageModule } from './modules/geo-image/geo-image.module'
+import { GeoCommentModule } from './modules/geo-comment/geo-comment.module'
+import { StoryboardModule } from './modules/storyboard/storyboard.module'
+import { SceneModule } from './modules/scene/scene.module'
 
 @Module({
   imports: [
@@ -49,6 +49,7 @@ import { SceneModule } from './modules/scene/scene.module';
           timezone: '+00:00',
           logging: true,
           providers: [InitDbService],
+          entities: [__dirname + '/**/*.entity{.ts,.js}'],
           // installExtensions: ['postgis', 'postgis_raster'],
           maxQueryExecutionTime: 1000,
           poolSize: 10,
@@ -57,16 +58,15 @@ import { SceneModule } from './modules/scene/scene.module';
             min: 1,
           },
         }
-      },
-      dataSourceFactory: async (options) => {
-        const dataSource = new DataSource(options)
-        // @ts-ignore TypeORM does not support but the database supports
-        dataSource.driver.supportedDataTypes.push('raster')
-        await dataSource.initialize()
+      }
+      // dataSourceFactory: async (options) => {
+      //   const dataSource = new DataSource(options)
+      //   // @ts-ignore TypeORM does not support but the database supports
+      //   dataSource.driver.supportedDataTypes.push('raster')
+      //   await dataSource.initialize()
 
-        return dataSource
-      },
-
+      //   return dataSource
+      // },
     }),
     AccessControlModule.forRoles(roles),
     AutoEntitiesModule.forRootAsync(),
@@ -79,9 +79,11 @@ import { SceneModule } from './modules/scene/scene.module';
     ServeStaticModule.forRootAsync({
       inject: [ConfigService],
       imports: [ConfigModule],
-      useFactory: async (config: ConfigService) => ([{
-        rootPath: config.get('UPLOAD_PATH'),
-      }])
+      useFactory: async (config: ConfigService) => [
+        {
+          rootPath: config.get('UPLOAD_PATH'),
+        },
+      ],
     }),
     FileModule,
     ConsensusModule,

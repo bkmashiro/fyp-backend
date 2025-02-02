@@ -6,8 +6,7 @@ import {
 } from 'typeorm'
 import { TimedEntity } from './TimedEntity'
 
-@Entity()
-export class GeoEntity extends TimedEntity {
+export abstract class GeoEntity extends TimedEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 

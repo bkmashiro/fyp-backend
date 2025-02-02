@@ -40,10 +40,10 @@ async function bootstrap() {
   )
   const configService = app.get(ConfigService)
   const config = new DocumentBuilder()
-    .setTitle('sanpu API')
-    .setDescription('Ai Song')
+    .setTitle('SnapSphere API')
+    .setDescription('SnapSphere API')
     .setVersion('1.0')
-    .addTag('aisong')
+    .addTag('ss')
     .addBearerAuth()
     .build()
 
