@@ -9,5 +9,6 @@ import { S3Service } from './s3/s3.service';
   imports: [TypeOrmModule.forFeature([File])],
   controllers: [FileController],
   providers: [FileService, S3Service],
+  exports: [FileService],
 })
 export class FileModule {}

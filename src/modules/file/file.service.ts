@@ -25,8 +25,8 @@ export class FileService {
     this.uploadPath = _path
   }
 
-  saveFile(file: Express.Multer.File): { url: string; key: string } {
-    console.log('file', file)
+  async saveFile(file: Express.Multer.File) {
+    // console.log('file', file)
     const uniqueSuffix = `${uuidv4()}${path.extname(file.originalname)}`
     const filePath = path.join(this.uploadPath, uniqueSuffix)
 
@@ -42,7 +42,7 @@ export class FileService {
     }
 
     // 存储文件信息到数据库
-    this.fileRepository.save({
+    const fileEntity = await this.fileRepository.save({
       key: uniqueSuffix,
       originalName: file.originalname,
       size: file.size,
@@ -52,6 +52,7 @@ export class FileService {
     return {
       url: `/files/${uniqueSuffix}`,
       key: uniqueSuffix,
+      file: fileEntity
     }
   }
 

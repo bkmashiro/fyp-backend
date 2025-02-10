@@ -17,9 +17,12 @@ export abstract class GeoObject extends GeoEntity {
     type: 'geometry',
     spatialFeatureType: 'Point',
     srid: 4326,
-    nullable: true,
+    default: () => 'ST_GeomFromText(\'POINT(0 0)\', 4326)',
   })
   anchor: Point
+
+  @Column('float', { default: 0 })
+  anchor_latitude: number
 
   @Column('text', { nullable: true })
   metadata: string | null

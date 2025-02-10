@@ -1,6 +1,6 @@
 import { File } from '@/modules/file/entities/file.entity'
 import { GeoObject } from '@/modules/geo-object/entities/geo-object.entity'
-import { ChildEntity, JoinColumn, OneToOne } from 'typeorm'
+import { ChildEntity, Column, JoinColumn, OneToOne } from 'typeorm'
 
 @ChildEntity()
 export class GeoImage extends GeoObject {
