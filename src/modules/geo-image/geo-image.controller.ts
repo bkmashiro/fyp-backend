@@ -25,17 +25,7 @@ export class GeoImageController {
   ) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(
-    @UploadedFile() file: Express.Multer.File,
-    @Body() body: any,
-  ) {
-    if (!file) {
-      throw new HttpException('No file provided', HttpStatus.BAD_REQUEST)
-    }
-
-    const { file: ossFile } = await this.fileService.saveFile(file)
-
-    return this.geoImageService.create(ossFile, JSON.parse(body.body)) //TODO Add error handling
+  async create(@Body() createGeoImageDto: CreateGeoImageDto) {
+    return await this.geoImageService.create(createGeoImageDto)
   }
 }

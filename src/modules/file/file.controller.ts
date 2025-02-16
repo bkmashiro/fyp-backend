@@ -31,7 +31,7 @@ export class FileController {
 
   @Get(':key')
   getFile(@Param('key') key: string, @Res() res: Response) {
-    const filePath = this.fileService.getFile(key)
+    const filePath = this.fileService.accessFilePath(key)
     return res.sendFile(filePath)
   }
 }

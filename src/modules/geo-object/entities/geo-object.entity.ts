@@ -27,6 +27,9 @@ export abstract class GeoObject extends GeoEntity {
   @Column('text', { nullable: true })
   metadata: string | null
 
+  @Column('text', { nullable: true })
+  cloudAnchorId: string | null
+
   @CreateDateColumn()
   createdAt: Date
 

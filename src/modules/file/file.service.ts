@@ -52,11 +52,15 @@ export class FileService {
     return {
       url: `/files/${uniqueSuffix}`,
       key: uniqueSuffix,
-      file: fileEntity
+      file: fileEntity,
     }
   }
 
-  getFile(key: string): string {
+  async getFile(key: string) {
+    return await this.fileRepository.findOne({ where: { key } })
+  }
+
+  accessFilePath(key: string): string {
     const filePath = path.join(this.uploadPath, key)
     if (!fs.existsSync(filePath)) {
       throw new HttpException('File not found', HttpStatus.NOT_FOUND)
