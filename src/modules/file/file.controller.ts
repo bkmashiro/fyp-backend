@@ -8,6 +8,7 @@ import {
   Res,
   HttpException,
   HttpStatus,
+  Request,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { FileService } from './file.service'

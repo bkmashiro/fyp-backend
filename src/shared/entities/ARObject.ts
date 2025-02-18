@@ -13,7 +13,7 @@ export abstract class GeoEntity extends TimedEntity {
   position: Point
 
   @Column('float', { default: 0 })
-  latitude: number
+  altitude: number
 
   @Column('float', { array: true, default: [0, 0, 0, 1] })
   orientation: number[]
