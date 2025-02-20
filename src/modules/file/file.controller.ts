@@ -8,12 +8,12 @@ import {
   Res,
   HttpException,
   HttpStatus,
-  Request,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { FileService } from './file.service'
 import { Response } from 'express'
 import { ApiTags } from '@nestjs/swagger'
+import { resolve } from 'path';
 
 @ApiTags('File')
 @Controller('file')
@@ -33,6 +33,9 @@ export class FileController {
   @Get(':key')
   getFile(@Param('key') key: string, @Res() res: Response) {
     const filePath = this.fileService.accessFilePath(key)
-    return res.sendFile(filePath)
+
+    console.log('filePath', filePath, resolve(filePath))
+
+    return res.sendFile(resolve(filePath))
   }
 }

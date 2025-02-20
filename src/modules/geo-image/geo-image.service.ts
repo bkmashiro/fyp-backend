@@ -12,10 +12,14 @@ export class GeoImageService {
   async create(createGeoImageDto: CreateGeoImageDto) {
     const file = await this.fileService.getFile(createGeoImageDto.ossFileId)
 
-    return await GeoImage.create({
+    const img = await GeoImage.create({
       ossFile: file,
       ...createGeoImageDto,
     }).save()
+
+    console.log('img', img)
+
+    return img
   }
 
   findAll() {
