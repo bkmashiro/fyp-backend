@@ -30,6 +30,19 @@ export abstract class GeoObject extends GeoEntity {
   @Column('text', { nullable: true })
   cloudAnchorId: string | null
 
+  @Column({
+    type: 'geometry',
+    spatialFeatureType: 'Point',
+    srid: 4326,
+  })
+  relPosition: Point
+
+  @Column('float', { default: 0 })
+  relAltitude: number
+
+  @Column('float', { array: true, default: [0, 0, 0, 1] })
+  relOrientation: number[]
+
   @CreateDateColumn()
   createdAt: Date
 

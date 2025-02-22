@@ -25,7 +25,11 @@ export class GeoImageController {
 
   @Post()
   async create(@Body() createGeoImageDto: CreateGeoImageDto) {
-    console.log('createGeoImageDto', createGeoImageDto)
     return await this.geoImageService.create(createGeoImageDto)
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.geoImageService.findOne(parseInt(id))
   }
 }

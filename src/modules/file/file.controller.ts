@@ -32,6 +32,7 @@ export class FileController {
 
   @Get(':key')
   getFile(@Param('key') key: string, @Res() res: Response) {
+    console.log('key', key)
     const filePath = this.fileService.accessFilePath(key)
 
     console.log('filePath', filePath, resolve(filePath))

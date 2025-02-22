@@ -72,7 +72,7 @@ async function bootstrap() {
 
   logger.debug('codegen completed')
 
-  app.use('/files', express.static(configService.getOrThrow('UPLOAD_PATH')));
+  // app.use('/files', express.static(configService.getOrThrow('UPLOAD_PATH')));
 
   await app.listen(3001)
 }
