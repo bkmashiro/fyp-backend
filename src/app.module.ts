@@ -76,15 +76,15 @@ import { SceneModule } from './modules/scene/scene.module'
     FasterCrudModule,
     TestModule,
     FileModule,
-    ServeStaticModule.forRootAsync({
-      inject: [ConfigService],
-      imports: [ConfigModule],
-      useFactory: async (config: ConfigService) => [
-        {
-          rootPath: config.get('UPLOAD_PATH'),
-        },
-      ],
-    }),
+    // ServeStaticModule.forRootAsync({
+    //   inject: [ConfigService],
+    //   imports: [ConfigModule],
+    //   useFactory: async (config: ConfigService) => [
+    //     {
+    //       rootPath: config.get('UPLOAD_PATH'),
+    //     },
+    //   ],
+    // }),
     FileModule,
     ConsensusModule,
     GeoObjectModule,

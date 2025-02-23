@@ -1,22 +1,12 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  HttpException,
-  HttpStatus,
-  UploadedFile,
-  UseInterceptors,
-  ValidationPipe,
-} from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common'
 import { GeoImageService } from './geo-image.service'
 import { FileService } from '../file/file.service'
 import { CreateGeoImageDto } from './dto/create-geo-image.dto'
+import { QueryGeoImageDto } from './dto/query-geo-image-dto'
+import { ApiTags } from '@nestjs/swagger'
 
 @Controller('geo-image')
+@ApiTags('geo-image')
 export class GeoImageController {
   constructor(
     private readonly geoImageService: GeoImageService,
@@ -24,12 +14,18 @@ export class GeoImageController {
   ) {}
 
   @Post()
-  async create(@Body() createGeoImageDto: CreateGeoImageDto) {
+  async createGeoImage(@Body() createGeoImageDto: CreateGeoImageDto) {
     return await this.geoImageService.create(createGeoImageDto)
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOneGeoImage(@Param('id') id: string) {
     return this.geoImageService.findOne(parseInt(id))
+  }
+
+  @Get()
+  async findAllGeoImages(@Query() query: QueryGeoImageDto) {
+    console.log('query', query)
+    return this.geoImageService.findAll(query)
   }
 }

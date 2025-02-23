@@ -9,10 +9,10 @@ import * as express from 'express';
 const logger = new Logger('Main')
 function simplifyOperationId(obj) {
   const operationIdPattern =
-    /^(getOne|updateOne|replaceOne|deleteOne|getMany|createOne|createMany)(Base)?[A-Za-z]+Controller[A-Za-z]+$/
+    /^(getOne|updateOne|replaceOne|deleteOne|getMany|createOne|createMany)(Base)?[A-Za-z]+Controller([A-Za-z]+)$/
 
   function simplify(id) {
-    return id.replace(operationIdPattern, '$1')
+    return id.replace(operationIdPattern, '$1$3')
   }
 
   Object.keys(obj).forEach((path) => {
