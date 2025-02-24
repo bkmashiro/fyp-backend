@@ -3,7 +3,7 @@ import { GeoImageService } from './geo-image.service'
 import { FileService } from '../file/file.service'
 import { CreateGeoImageDto } from './dto/create-geo-image.dto'
 import { QueryGeoImageDto } from './dto/query-geo-image-dto'
-import { ApiTags } from '@nestjs/swagger'
+import { ApiQuery, ApiTags } from '@nestjs/swagger'
 
 @Controller('geo-image')
 @ApiTags('geo-image')
@@ -24,8 +24,9 @@ export class GeoImageController {
   }
 
   @Get()
+  @ApiQuery({ type: QueryGeoImageDto })
   async findAllGeoImages(@Query() query: QueryGeoImageDto) {
-    console.log('query', query)
+    // console.log('query', query)
     return this.geoImageService.findAll(query)
   }
 }
