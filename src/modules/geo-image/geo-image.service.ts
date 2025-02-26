@@ -46,15 +46,7 @@ export class GeoImageService {
     }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} geoImage`
-  }
-
   update(id: number, updateGeoImageDto: UpdateGeoImageDto) {
     return `This action updates a #${id} geoImage`
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} geoImage`
   }
 }

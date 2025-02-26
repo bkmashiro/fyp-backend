@@ -29,4 +29,8 @@ export class GeoObjectService {
       },
     })
   }
+
+  async update(id: string, updateGeoObjectDto: UpdateGeoObjectDto) {
+    return this.geoObjectRepository.update(id, updateGeoObjectDto)
+  }
 }

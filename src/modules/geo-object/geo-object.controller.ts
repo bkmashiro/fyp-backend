@@ -34,4 +34,12 @@ export class GeoObjectController {
       parseFloat(radius),
     )
   }
+
+  @Post()
+  updateGeoObject(@Body() updateGeoObjectDto: UpdateGeoObjectDto) {
+    return this.geoObjectService.update(
+      updateGeoObjectDto.id,
+      updateGeoObjectDto,
+    )
+  }
 }
