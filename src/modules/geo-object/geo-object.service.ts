@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common'
-import { CreateGeoObjectDto } from './dto/create-geo-object.dto'
 import { UpdateGeoObjectDto } from './dto/update-geo-object.dto'
 import { GeoObject } from './entities/geo-object.entity'
 import { InjectRepository } from '@nestjs/typeorm'
