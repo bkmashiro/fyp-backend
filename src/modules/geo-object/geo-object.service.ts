@@ -32,4 +32,10 @@ export class GeoObjectService {
   async update(id: string, updateGeoObjectDto: UpdateGeoObjectDto) {
     return this.geoObjectRepository.update(id, updateGeoObjectDto)
   }
+
+  findObjectsByAnchor(anchorId: string) {
+    return this.geoObjectRepository.find({
+      where: { cloudAnchor: { cloudAnchorId: anchorId } },
+    })
+  }
 }

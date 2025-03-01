@@ -7,6 +7,7 @@ import { FileService } from '../file/file.service'
 import { QueryGeoImageDto } from './dto/query-geo-image-dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
+import { CloudAnchorService } from '../cloud-anchor/cloud-anchor.service'
 
 @Injectable()
 export class GeoImageService {
@@ -14,6 +15,7 @@ export class GeoImageService {
     private readonly fileService: FileService,
     @InjectRepository(GeoImage)
     private readonly geoImageRepository: Repository<GeoImage>,
+    private readonly cloudAnchorService: CloudAnchorService,
   ) {}
 
   async create(createGeoImageDto: CreateGeoImageDto) {
@@ -44,6 +46,10 @@ export class GeoImageService {
       limit,
       totalPages: Math.ceil(total / limit),
     }
+  }
+
+  async findOne(id: string) {
+    return await this.geoImageRepository.findOne({ where: { id } })
   }
 
   update(id: number, updateGeoImageDto: UpdateGeoImageDto) {

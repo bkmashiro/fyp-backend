@@ -42,4 +42,9 @@ export class GeoObjectController {
       updateGeoObjectDto,
     )
   }
+
+  @Get('anchor/:anchorId')
+  findGeoObjectsByAnchor(@Param('anchorId') anchorId: string) {
+    return this.geoObjectService.findObjectsByAnchor(anchorId)
+  }
 }

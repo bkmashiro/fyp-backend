@@ -1,3 +1,4 @@
+import { CloudAnchor } from '@/modules/cloud-anchor/entities/cloud-anchor.entity'
 import { Scene } from '@/modules/scene/entities/scene.entity'
 import { GeoEntity } from '@/shared/entities/ARObject'
 import {
@@ -17,7 +18,7 @@ export abstract class GeoObject extends GeoEntity {
     type: 'geometry',
     spatialFeatureType: 'Point',
     srid: 4326,
-    default: () => 'ST_GeomFromText(\'POINT(0 0)\', 4326)',
+    default: () => "ST_GeomFromText('POINT(0 0)', 4326)",
   })
   anchor: Point
 
@@ -27,8 +28,13 @@ export abstract class GeoObject extends GeoEntity {
   @Column('text', { nullable: true })
   metadata: string | null
 
-  @Column('text', { nullable: true })
-  cloudAnchorId: string | null
+  // @Column('text', { nullable: true })
+  // cloudAnchorId: string | null
+
+  @ManyToOne(() => CloudAnchor, (cloudAnchor) => cloudAnchor.geoObjects, {
+    nullable: true,
+  })
+  cloudAnchor: CloudAnchor
 
   @Column({
     type: 'geometry',

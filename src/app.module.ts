@@ -22,6 +22,7 @@ import { GeoCommentModule } from './modules/geo-comment/geo-comment.module'
 import { StoryboardModule } from './modules/storyboard/storyboard.module'
 import { SceneModule } from './modules/scene/scene.module'
 import { WatermarkModule } from './modules/watermark/watermark.module';
+import { CloudAnchorModule } from './modules/cloud-anchor/cloud-anchor.module';
 
 @Module({
   imports: [
@@ -94,6 +95,7 @@ import { WatermarkModule } from './modules/watermark/watermark.module';
     StoryboardModule,
     SceneModule,
     WatermarkModule,
+    CloudAnchorModule,
   ],
   controllers: [AppController],
   providers: [AppService, InitDbService],

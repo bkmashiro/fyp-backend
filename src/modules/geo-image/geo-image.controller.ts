@@ -20,7 +20,7 @@ export class GeoImageController {
 
   @Get(':id')
   findOneGeoImage(@Param('id') id: string) {
-    return this.geoImageService.findOne(parseInt(id))
+    return this.geoImageService.findOne(id)
   }
 
   @Get()
