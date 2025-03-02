@@ -7,12 +7,14 @@ import { CloudAnchor } from './entities/cloud-anchor.entity'
 
 @Injectable()
 export class CloudAnchorService {
+
   constructor(
     @InjectRepository(CloudAnchor)
     private readonly cloudAnchorRepository: Repository<CloudAnchor>,
-  ) {}
+  ) { }
 
   create(createCloudAnchorDto: CreateCloudAnchorDto) {
+    console.log('createCloudAnchorDto', createCloudAnchorDto) 
     return CloudAnchor.create({
       ...createCloudAnchorDto,
       anchor: {
@@ -30,6 +32,14 @@ export class CloudAnchorService {
             `ST_DWithin(${alias}, ST_SetSRID(ST_MakePoint(:lon, :lat), 4326), :radius)`,
           { lat, lon, radius },
         ),
+      },
+    })
+  }
+
+  findOne(cloudAnchorId: string) {
+    return this.cloudAnchorRepository.findOne({
+      where: {
+        cloudAnchorId,
       },
     })
   }

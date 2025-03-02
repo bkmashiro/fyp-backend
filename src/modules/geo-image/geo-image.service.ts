@@ -24,6 +24,7 @@ export class GeoImageService {
     const img = await GeoImage.create({
       ossFile: file,
       ...createGeoImageDto,
+      cloudAnchor: await this.cloudAnchorService.findOne(createGeoImageDto.cloudAnchorId),
     }).save()
 
     console.log('img', img)

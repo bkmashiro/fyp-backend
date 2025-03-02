@@ -33,6 +33,7 @@ export abstract class GeoObject extends GeoEntity {
 
   @ManyToOne(() => CloudAnchor, (cloudAnchor) => cloudAnchor.geoObjects, {
     nullable: true,
+    eager: true,
   })
   cloudAnchor: CloudAnchor
 
