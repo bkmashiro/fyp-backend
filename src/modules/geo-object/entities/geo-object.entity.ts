@@ -14,6 +14,9 @@ import {
 @Entity()
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export abstract class GeoObject extends GeoEntity {
+  @Column({ type: 'varchar', select: true })
+  type: string;
+
   @Column({
     type: 'geometry',
     spatialFeatureType: 'Point',
