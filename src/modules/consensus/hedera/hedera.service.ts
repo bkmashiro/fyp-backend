@@ -39,7 +39,7 @@ export class HederaService {
 
     setTimeout(() => {
       // this.submitHashMessage('hello snapsphere', 'yuzhe')
-      // this.validateHashMessage('hello snapsphere', 'yuzhe')
+      this.validateHashMessage('hello snapsphere', 'yuzhe')
       // this.fetchMessages(this.topicId)
       // this.findMessages(this.topicId)
     }, 1000)
