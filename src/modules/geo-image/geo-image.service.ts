@@ -56,4 +56,13 @@ export class GeoImageService {
   update(id: number, updateGeoImageDto: UpdateGeoImageDto) {
     return `This action updates a #${id} geoImage`
   }
+
+  async delete(id: string) {
+    const geoImage = await this.geoImageRepository.findOne({ where: { id } })
+    if (!geoImage) {
+      throw new Error('GeoImage not found')
+    }
+    await this.geoImageRepository.delete(id)
+    return geoImage
+  }
 }

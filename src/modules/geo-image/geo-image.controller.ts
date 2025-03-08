@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common'
+import { Controller, Get, Post, Body, Param, Query, Delete } from '@nestjs/common'
 import { GeoImageService } from './geo-image.service'
 import { FileService } from '../file/file.service'
 import { CreateGeoImageDto } from './dto/create-geo-image.dto'
@@ -28,5 +28,10 @@ export class GeoImageController {
   async findAllGeoImages(@Query() query: QueryGeoImageDto) {
     // console.log('query', query)
     return this.geoImageService.findAll(query)
+  }
+
+  @Delete(':id')
+  async deleteGeoImage(@Param('id') id: string) {
+    return this.geoImageService.delete(id)
   }
 }
