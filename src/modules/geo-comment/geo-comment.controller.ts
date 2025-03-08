@@ -9,4 +9,9 @@ import { ApiTags } from '@nestjs/swagger';
 export class GeoCommentController {
   constructor(private readonly geoCommentService: GeoCommentService) {}
 
+  @Post()
+  async create(@Body() createGeoCommentDto: CreateGeoCommentDto) {
+    return this.geoCommentService.create(createGeoCommentDto)
+  }
 }
+  
