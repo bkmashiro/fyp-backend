@@ -6,10 +6,11 @@ import { ConfigService } from '@nestjs/config'
 import { Repository } from 'typeorm'
 import { File } from './entities/file.entity'
 import { InjectRepository } from '@nestjs/typeorm'
+import { resolve } from 'path'
 
 @Injectable()
 export class FileService {
-  private readonly uploadPath
+  private readonly uploadPath: string
 
   constructor(
     private readonly configService: ConfigService,
@@ -61,10 +62,13 @@ export class FileService {
   }
 
   accessFilePath(key: string): string {
-    const filePath = path.join(this.uploadPath, key)
+    const filePath = resolve(path.join(this.uploadPath, key))
+    console.log('filePath', filePath)
     if (!fs.existsSync(filePath)) {
       throw new HttpException('File not found', HttpStatus.NOT_FOUND)
     }
     return filePath
   }
+
+
 }

@@ -11,9 +11,8 @@ import {
 import { ConfigService } from '@nestjs/config'
 import { createHmac } from 'crypto'
 import { MessageMetaService } from '../message-meta/message-meta.service'
-
-import { Observable, Subject } from 'rxjs'
-import { debounceTime, takeUntil } from 'rxjs/operators'
+import { Subject } from 'rxjs'
+import { debounceTime } from 'rxjs/operators'
 
 @Injectable()
 export class HederaService {
@@ -37,12 +36,12 @@ export class HederaService {
     this.client = Client.forTestnet() // 或者使用 Client.forMainnet() 连接主网
     this.client.setOperator(operatorId, operatorKey)
 
-    setTimeout(() => {
-      // this.submitHashMessage('hello snapsphere', 'yuzhe')
-      this.validateHashMessage('hello snapsphere', 'yuzhe')
-      // this.fetchMessages(this.topicId)
-      // this.findMessages(this.topicId)
-    }, 1000)
+    // setTimeout(() => {
+    // this.submitHashMessage('hello snapsphere', 'yuzhe')
+    // this.validateHashMessage('hello snapsphere', 'yuzhe')
+    // this.fetchMessages(this.topicId)
+    // this.findMessages(this.topicId)
+    // }, 1000)
   }
 
   async createTopic(): Promise<string> {
