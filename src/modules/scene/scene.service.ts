@@ -13,7 +13,13 @@ export class SceneService {
   ) {}
 
   async create(createSceneDto: CreateSceneDto) {
-    const scene = this.sceneRepository.create(createSceneDto);
+    const scene = this.sceneRepository.create({
+      ...createSceneDto,
+      position: {
+        type: 'Point',
+        coordinates: createSceneDto.position,
+      },
+    });
     return this.sceneRepository.save(scene);
   }
 
@@ -31,7 +37,13 @@ export class SceneService {
   }
 
   async update(id: string, updateSceneDto: UpdateSceneDto) {
-    await this.sceneRepository.update(id, updateSceneDto);
+    await this.sceneRepository.update(id, {
+      ...updateSceneDto,
+      position: {
+        type: 'Point',
+        coordinates: updateSceneDto.position,
+      },
+    });
     return this.findOne(id);
   }
 
