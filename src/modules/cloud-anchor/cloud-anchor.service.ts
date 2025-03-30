@@ -38,15 +38,22 @@ export class CloudAnchorService {
     })
   }
 
-  create(createCloudAnchorDto: CreateCloudAnchorDto) {
+  async create(createCloudAnchorDto: CreateCloudAnchorDto) {
     console.log('createCloudAnchorDto', createCloudAnchorDto)
-    return CloudAnchor.create({
+    const anchor = await CloudAnchor.create({
       ...createCloudAnchorDto,
       anchor: {
         type: 'Point',
         coordinates: createCloudAnchorDto.anchorPosition,
       },
     }).save()
+
+    // By default, set expire time to 30 days
+    await this.updateAnchorExpireTime(
+      anchor.cloudAnchorId,
+      new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    )
+    return anchor
   }
 
   async findAnchorsInArea(lat: number, lon: number, radius: number) {
@@ -61,11 +68,30 @@ export class CloudAnchorService {
     })
   }
 
-  findOne(cloudAnchorId: string) {
+  async findAll(pageSize: number = 10, page: number = 1) {
+    const [anchors, total] = await this.cloudAnchorRepository.findAndCount({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      order: {
+        id: 'DESC'
+      }
+    });
+
+    return {
+      data: anchors,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize)
+    };
+  }
+
+  findOne(id: string) {
     return this.cloudAnchorRepository.findOne({
       where: {
-        cloudAnchorId,
+        id: +id,
       },
+      relations: ['geoObjects'], // load geoObjects
     })
   }
 
@@ -116,7 +142,7 @@ export class CloudAnchorService {
         { expireTime },
         {
           headers: {
-            'Authorization': `Bearer ${this.token}`,
+            Authorization: `Bearer ${this.token}`,
             'Content-Type': 'application/json',
           },
           params: {
