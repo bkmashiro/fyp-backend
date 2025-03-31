@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { UpdateGeoObjectDto } from './dto/update-geo-object.dto'
 import { GeoObject } from './entities/geo-object.entity'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Raw, Repository } from 'typeorm'
+import { Raw, Repository, Between } from 'typeorm'
 
 @Injectable()
 export class GeoObjectService {
@@ -37,5 +37,27 @@ export class GeoObjectService {
     return this.geoObjectRepository.find({
       where: { cloudAnchor: { cloudAnchorId: anchorId } },
     })
+  }
+
+  async findObjectsInBounds(
+    minLat: number,
+    maxLat: number,
+    minLon: number,
+    maxLon: number,
+    type?: string,
+  ) {
+    const queryBuilder = this.geoObjectRepository.createQueryBuilder('geoObject')
+      .where('ST_Contains(ST_MakeEnvelope(:minLon, :minLat, :maxLon, :maxLat, 4326), geoObject.position)', {
+        minLat,
+        maxLat,
+        minLon,
+        maxLon,
+      })
+
+    if (type) {
+      queryBuilder.andWhere('geoObject.type = :type', { type })
+    }
+
+    return queryBuilder.getMany()
   }
 }

@@ -44,8 +44,9 @@ export class CloudAnchorService {
       ...createCloudAnchorDto,
       anchor: {
         type: 'Point',
-        coordinates: createCloudAnchorDto.anchorPosition,
+        coordinates: createCloudAnchorDto.position,
       },
+      altitude: createCloudAnchorDto.altitude,
     }).save()
 
     // By default, set expire time to 30 days
@@ -73,17 +74,23 @@ export class CloudAnchorService {
       skip: (page - 1) * pageSize,
       take: pageSize,
       order: {
-        id: 'DESC'
-      }
-    });
+        id: 'DESC',
+      },
+      relations: ['geoObjects'],
+    })
+
+    const anchorsWithCount = anchors.map((anchor) => ({
+      ...anchor,
+      geoObjectCount: anchor.geoObjects?.length || 0,
+    }))
 
     return {
-      data: anchors,
+      data: anchorsWithCount,
       total,
       page,
       pageSize,
-      totalPages: Math.ceil(total / pageSize)
-    };
+      totalPages: Math.ceil(total / pageSize),
+    }
   }
 
   findOne(id: string) {

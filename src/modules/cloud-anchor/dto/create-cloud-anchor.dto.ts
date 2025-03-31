@@ -1,5 +1,7 @@
 export class CreateCloudAnchorDto {
   cloudAnchorId: string
 
-  anchorPosition: number[]
+  position: number[]
+
+  altitude: number
 }
