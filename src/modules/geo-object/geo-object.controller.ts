@@ -19,7 +19,7 @@ import { FindObjectsInBoundsDto } from './dto/find-objects-in-bounds.dto'
 export class GeoObjectController {
   constructor(private readonly geoObjectService: GeoObjectService) {}
 
-  @Get('bounds/:minLat/:maxLat/:minLon/:maxLon')
+  @Get('bounds')
   @ApiOperation({ summary: 'Find geo objects within specified bounds' })
   @ApiQuery({ type: FindObjectsInBoundsDto })
   async findObjectsInBounds(@Query() query: FindObjectsInBoundsDto) {
@@ -29,6 +29,8 @@ export class GeoObjectController {
       query.minLon,
       query.maxLon,
       query.type,
+      query.page,
+      query.limit,
     )
   }
 

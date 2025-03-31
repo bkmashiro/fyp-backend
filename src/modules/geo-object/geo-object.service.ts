@@ -45,6 +45,8 @@ export class GeoObjectService {
     minLon: number,
     maxLon: number,
     type?: string,
+    page: number = 1,
+    limit: number = 10,
   ) {
     const queryBuilder = this.geoObjectRepository.createQueryBuilder('geoObject')
       .where('ST_Contains(ST_MakeEnvelope(:minLon, :minLat, :maxLon, :maxLat, 4326), geoObject.position)', {
@@ -53,11 +55,25 @@ export class GeoObjectService {
         minLon,
         maxLon,
       })
+    .leftJoinAndSelect('geoObject.cloudAnchor', 'cloudAnchor')
 
     if (type) {
       queryBuilder.andWhere('geoObject.type = :type', { type })
     }
 
-    return queryBuilder.getMany()
+    const [data, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount()
+
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data,
+      limit,
+      page,
+      total,
+      totalPages,
+    }
   }
 }
