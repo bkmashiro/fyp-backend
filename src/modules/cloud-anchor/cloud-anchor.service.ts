@@ -94,6 +94,15 @@ export class CloudAnchorService {
   }
 
   findOne(id: string) {
+    // if begin with "'ua-'"
+    if (id.startsWith('ua-')) {
+      return this.cloudAnchorRepository.findOne({
+        where: {
+          cloudAnchorId: id,
+        },
+        relations: ['geoObjects'],
+      })
+    }
     return this.cloudAnchorRepository.findOne({
       where: {
         id: +id,
