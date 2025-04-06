@@ -1,11 +1,11 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
-import { Logger, ValidationPipe } from '@nestjs/common'
+import { Logger, ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient } from '@hey-api/openapi-ts'
 import * as express from 'express';
-import { ClassSerializerInterceptor } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 
 const logger = new Logger('Main')
 function simplifyOperationId(obj) {
@@ -41,7 +41,7 @@ async function bootstrap() {
   )
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector), {
-      excludeExtraneousValues: true,
+      excludeExtraneousValues: false,
     }),
   );
   app.setGlobalPrefix('api')
