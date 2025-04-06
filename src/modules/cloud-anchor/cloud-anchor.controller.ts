@@ -47,7 +47,7 @@ export class CloudAnchorController {
   }
 
   @Get('detail/:id')
-  findOne(@Param('id') id: string) {
+  findOneAnchor(@Param('id') id: string) {
     return this.cloudAnchorService.findOne(id)
   }
 

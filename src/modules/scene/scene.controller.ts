@@ -17,7 +17,7 @@ export class SceneController {
     description: '场景创建成功',
     type: Scene 
   })
-  create(@Body() createSceneDto: CreateSceneDto) {
+  createScene(@Body() createSceneDto: CreateSceneDto) {
     return this.sceneService.create(createSceneDto);
   }
 
@@ -28,7 +28,7 @@ export class SceneController {
     description: '返回所有场景列表',
     type: [Scene]
   })
-  findAll() {
+  findAllScenes() {
     return this.sceneService.findAll();
   }
 
@@ -39,7 +39,7 @@ export class SceneController {
     description: '返回指定场景',
     type: Scene 
   })
-  findOne(@Param('id') id: string) {
+  findOneScene(@Param('id') id: string) {
     return this.sceneService.findOne(id);
   }
 
@@ -50,7 +50,7 @@ export class SceneController {
     description: '场景更新成功',
     type: Scene 
   })
-  update(@Param('id') id: string, @Body() updateSceneDto: UpdateSceneDto) {
+  updateScene(@Param('id') id: string, @Body() updateSceneDto: UpdateSceneDto) {
     return this.sceneService.update(id, updateSceneDto);
   }
 
@@ -61,7 +61,7 @@ export class SceneController {
     description: '场景删除成功',
     type: Scene 
   })
-  remove(@Param('id') id: string) {
+  removeScene(@Param('id') id: string) {
     return this.sceneService.remove(id);
   }
 }

@@ -12,27 +12,27 @@ export class GeoCommentController {
 
   @Post()
   @ApiOperation({ summary: '创建地理评论' })
-  async create(@Body() createGeoCommentDto: CreateGeoCommentDto) {
+  async createComment(@Body() createGeoCommentDto: CreateGeoCommentDto) {
     return this.geoCommentService.create(createGeoCommentDto)
   }
 
   @Get(':id')
   @ApiOperation({ summary: '获取单个评论' })
-  findOne(@Param('id') id: string) {
+  findOneComment(@Param('id') id: string) {
     return this.geoCommentService.findOne(id)
   }
 
   @Get()
   @ApiQuery({ type: QueryGeoCommentDto })
   @ApiOperation({ summary: '分页查询评论列表' })
-  async findAll(@Query() query: QueryGeoCommentDto) {
+  async findAllComments(@Query() query: QueryGeoCommentDto) {
     return this.geoCommentService.findAll(query)
   }
 
   @Get('cloud-anchor/:cloudAnchorId')
   @ApiQuery({ type: QueryGeoCommentDto })
   @ApiOperation({ summary: '按云锚点ID查询评论' })
-  async findByCloudAnchorId(
+  async findCommentsByCloudAnchorId(
     @Param('cloudAnchorId') cloudAnchorId: number,
     @Query() query: QueryGeoCommentDto,
   ) {
@@ -41,7 +41,7 @@ export class GeoCommentController {
 
   @Patch(':id')
   @ApiOperation({ summary: '更新评论' })
-  async update(
+  async updateComment(
     @Param('id') id: string,
     @Body() updateGeoCommentDto: UpdateGeoCommentDto,
   ) {
@@ -50,13 +50,13 @@ export class GeoCommentController {
 
   @Delete(':id')
   @ApiOperation({ summary: '删除评论' })
-  async delete(@Param('id') id: string) {
+  async deleteComment(@Param('id') id: string) {
     return this.geoCommentService.delete(id)
   }
 
   @Get('cloud-anchor/:cloudAnchorId/statistics')
   @ApiOperation({ summary: '获取评论统计信息' })
-  async getStatistics(@Param('cloudAnchorId') cloudAnchorId: number) {
+  async getStatisticsByCloudAnchorId(@Param('cloudAnchorId') cloudAnchorId: number) {
     return this.geoCommentService.getStatistics(cloudAnchorId)
   }
 }
