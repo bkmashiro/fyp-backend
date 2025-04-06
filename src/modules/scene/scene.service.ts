@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { CreateSceneDto } from './dto/create-scene.dto';
 import { UpdateSceneDto } from './dto/update-scene.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -112,10 +112,12 @@ export class SceneService {
       scene.labels = [];
     }
 
-    if (!scene.labels.some(l => l.id === label.id)) {
-      scene.labels.push(label);
-      await this.sceneRepository.save(scene);
+    if (scene.labels.some(l => l.id === label.id)) {
+      throw new BadRequestException('Label already exists in this scene');
     }
+
+    scene.labels.push(label);
+    await this.sceneRepository.save(scene);
 
     return scene;
   }

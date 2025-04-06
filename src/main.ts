@@ -5,6 +5,7 @@ import { Logger, ValidationPipe } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient } from '@hey-api/openapi-ts'
 import * as express from 'express';
+import { ClassSerializerInterceptor } from '@nestjs/common';
 
 const logger = new Logger('Main')
 function simplifyOperationId(obj) {
@@ -38,6 +39,11 @@ async function bootstrap() {
       },
     }),
   )
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(Reflector), {
+      excludeExtraneousValues: true,
+    }),
+  );
   app.setGlobalPrefix('api')
   const configService = app.get(ConfigService)
   const config = new DocumentBuilder()
