@@ -23,4 +23,9 @@ export class CreateSceneDto {
   @IsNumber({}, { each: true })
   @IsOptional()
   scale?: [number, number, number];  // [x, y, z]
+
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @IsOptional()
+  managerIds?: number[];
 }

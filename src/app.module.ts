@@ -24,6 +24,7 @@ import { SceneModule } from './modules/scene/scene.module'
 import { WatermarkModule } from './modules/watermark/watermark.module';
 import { CloudAnchorModule } from './modules/cloud-anchor/cloud-anchor.module';
 import { LabelModule } from './modules/label/label.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -33,6 +34,10 @@ import { LabelModule } from './modules/label/label.module';
           ? ['.env', '.env.production']
           : ['.env', '.env.development'],
       isGlobal: true,
+    }),
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 60 * 5, // 5 minutes
     }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -50,7 +55,7 @@ import { LabelModule } from './modules/label/label.module';
           synchronize: config.get('DB_SYNC'),
           autoLoadEntities: true,
           timezone: '+00:00',
-          logging: true,
+          // logging: true,
           providers: [InitDbService],
           entities: [__dirname + '/**/*.entity{.ts,.js}'],
           // installExtensions: ['postgis', 'postgis_raster'],

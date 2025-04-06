@@ -1,12 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { SceneService } from './scene.service';
 import { CreateSceneDto } from './dto/create-scene.dto';
 import { UpdateSceneDto } from './dto/update-scene.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Scene } from './entities/scene.entity';
+// import { JwtAuthGuard } from '@/modules/auth/guards/jwt-auth.guard';
+import { User } from '@/modules/user/entities/user.entity';
+import { GetUser, RequireAuth } from '../auth/auth.decorator';
 
 @Controller('scene')
 @ApiTags('scene')
+@RequireAuth()
 export class SceneController {
   constructor(private readonly sceneService: SceneService) {}
 
@@ -17,8 +21,8 @@ export class SceneController {
     description: '场景创建成功',
     type: Scene 
   })
-  createScene(@Body() createSceneDto: CreateSceneDto) {
-    return this.sceneService.create(createSceneDto);
+  createScene(@Body() createSceneDto: CreateSceneDto, @GetUser() user: User) {
+    return this.sceneService.create(createSceneDto, user.id);
   }
 
   @Get()
@@ -30,6 +34,17 @@ export class SceneController {
   })
   findAllScenes() {
     return this.sceneService.findAll();
+  }
+
+  @Get('my-scenes')
+  @ApiOperation({ summary: '获取用户相关的场景' })
+  @ApiResponse({ 
+    status: 200, 
+    description: '返回用户创建或管理的场景列表',
+    type: [Scene]
+  })
+  findUserScenes(@GetUser() user: User) {
+    return this.sceneService.findUserScenes(user.id);
   }
 
   @Get(':id')
@@ -50,8 +65,12 @@ export class SceneController {
     description: '场景更新成功',
     type: Scene 
   })
-  updateScene(@Param('id') id: string, @Body() updateSceneDto: UpdateSceneDto) {
-    return this.sceneService.update(id, updateSceneDto);
+  updateScene(
+    @Param('id') id: string, 
+    @Body() updateSceneDto: UpdateSceneDto,
+    @GetUser() user: User
+  ) {
+    return this.sceneService.update(id, updateSceneDto, user.id);
   }
 
   @Delete(':id')
@@ -61,8 +80,8 @@ export class SceneController {
     description: '场景删除成功',
     type: Scene 
   })
-  removeScene(@Param('id') id: string) {
-    return this.sceneService.remove(id);
+  removeScene(@Param('id') id: string, @GetUser() user: User) {
+    return this.sceneService.remove(id, user.id);
   }
 
   @Post(':id/labels/:labelId')
@@ -72,8 +91,12 @@ export class SceneController {
     description: '标签添加成功',
     type: Scene 
   })
-  addLabel(@Param('id') id: string, @Param('labelId') labelId: string) {
-    return this.sceneService.addLabel(id, labelId);
+  addLabel(
+    @Param('id') id: string, 
+    @Param('labelId') labelId: string,
+    @GetUser() user: User
+  ) {
+    return this.sceneService.addLabel(id, labelId, user.id);
   }
 
   @Delete(':id/labels/:labelId')
@@ -83,8 +106,12 @@ export class SceneController {
     description: '标签移除成功',
     type: Scene 
   })
-  removeLabel(@Param('id') id: string, @Param('labelId') labelId: string) {
-    return this.sceneService.removeLabel(id, labelId);
+  removeLabel(
+    @Param('id') id: string, 
+    @Param('labelId') labelId: string,
+    @GetUser() user: User
+  ) {
+    return this.sceneService.removeLabel(id, labelId, user.id);
   }
 
   @Get('by-label/:labelId')
@@ -96,5 +123,35 @@ export class SceneController {
   })
   findByLabel(@Param('labelId') labelId: string) {
     return this.sceneService.findByLabel(labelId);
+  }
+
+  @Post(':id/managers/:managerId')
+  @ApiOperation({ summary: '添加场景管理员' })
+  @ApiResponse({ 
+    status: 200, 
+    description: '管理员添加成功',
+    type: Scene 
+  })
+  addManager(
+    @Param('id') id: string,
+    @Param('managerId') managerId: string,
+    @GetUser() user: User
+  ) {
+    return this.sceneService.addManager(id, user.id, +managerId);
+  }
+
+  @Delete(':id/managers/:managerId')
+  @ApiOperation({ summary: '移除场景管理员' })
+  @ApiResponse({ 
+    status: 200, 
+    description: '管理员移除成功',
+    type: Scene 
+  })
+  removeManager(
+    @Param('id') id: string,
+    @Param('managerId') managerId: string,
+    @GetUser() user: User
+  ) {
+    return this.sceneService.removeManager(id, user.id, +managerId);
   }
 }

@@ -14,7 +14,6 @@
  * ----------	---	---------------------------------------------------------    *
  */
 
-import { elementCode } from '@/decls/element-code'
 import { User } from '@/modules/user/entities/user.entity'
 import {
   applyDecorators,
@@ -83,9 +82,7 @@ export function MultipleChoice() {
   }
 }
 
-export function IsElementCode() {
-  return applyDecorators(IsInKeys(elementCode))
-}
+
 
 export function Hint(hint: string) {
   return function (target: any, key: string) {

@@ -1,17 +1,18 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToMany } from 'typeorm';
-import { Scene } from '@/modules/scene/entities/scene.entity';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToMany } from 'typeorm'
+import { Scene } from '@/modules/scene/entities/scene.entity'
+import { TimedEntity } from '@/shared/entities/TimedEntity'
 
 @Entity()
-export class Label {
+export class Label extends TimedEntity {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: string
 
   @Column({ unique: true })
-  name: string;
+  name: string
 
   @Column({ nullable: true })
-  description: string;
+  description: string
 
   @ManyToMany(() => Scene, (scene) => scene.labels)
-  scenes: Scene[];
+  scenes: Scene[]
 }

@@ -27,6 +27,7 @@ export class AuthService {
       sub: user.id,
       roles: u.roles.map((r) => r.name),
     }
+
     return {
       access_token: this.jwtService.sign(payload),
     }
