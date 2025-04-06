@@ -23,6 +23,7 @@ import { StoryboardModule } from './modules/storyboard/storyboard.module'
 import { SceneModule } from './modules/scene/scene.module'
 import { WatermarkModule } from './modules/watermark/watermark.module';
 import { CloudAnchorModule } from './modules/cloud-anchor/cloud-anchor.module';
+import { LabelModule } from './modules/label/label.module';
 
 @Module({
   imports: [
@@ -96,6 +97,7 @@ import { CloudAnchorModule } from './modules/cloud-anchor/cloud-anchor.module';
     SceneModule,
     WatermarkModule,
     CloudAnchorModule,
+    LabelModule,
   ],
   controllers: [AppController],
   providers: [AppService, InitDbService],

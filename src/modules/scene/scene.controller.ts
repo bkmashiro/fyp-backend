@@ -64,4 +64,37 @@ export class SceneController {
   removeScene(@Param('id') id: string) {
     return this.sceneService.remove(id);
   }
+
+  @Post(':id/labels/:labelId')
+  @ApiOperation({ summary: '为场景添加标签' })
+  @ApiResponse({ 
+    status: 200, 
+    description: '标签添加成功',
+    type: Scene 
+  })
+  addLabel(@Param('id') id: string, @Param('labelId') labelId: string) {
+    return this.sceneService.addLabel(id, labelId);
+  }
+
+  @Delete(':id/labels/:labelId')
+  @ApiOperation({ summary: '从场景移除标签' })
+  @ApiResponse({ 
+    status: 200, 
+    description: '标签移除成功',
+    type: Scene 
+  })
+  removeLabel(@Param('id') id: string, @Param('labelId') labelId: string) {
+    return this.sceneService.removeLabel(id, labelId);
+  }
+
+  @Get('by-label/:labelId')
+  @ApiOperation({ summary: '根据标签查询场景' })
+  @ApiResponse({ 
+    status: 200, 
+    description: '返回带有指定标签的场景列表',
+    type: [Scene]
+  })
+  findByLabel(@Param('labelId') labelId: string) {
+    return this.sceneService.findByLabel(labelId);
+  }
 }
