@@ -25,6 +25,7 @@ import { WatermarkModule } from './modules/watermark/watermark.module';
 import { CloudAnchorModule } from './modules/cloud-anchor/cloud-anchor.module';
 import { LabelModule } from './modules/label/label.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { StatisticsModule } from './modules/statistics/statistics.module'
 
 @Module({
   imports: [
@@ -103,6 +104,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     WatermarkModule,
     CloudAnchorModule,
     LabelModule,
+    StatisticsModule,
   ],
   controllers: [AppController],
   providers: [AppService, InitDbService],

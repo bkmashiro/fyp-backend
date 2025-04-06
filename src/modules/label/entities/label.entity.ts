@@ -2,7 +2,7 @@ import { Entity, Column, PrimaryGeneratedColumn, ManyToMany } from 'typeorm'
 import { Scene } from '@/modules/scene/entities/scene.entity'
 import { TimedEntity } from '@/shared/entities/TimedEntity'
 
-@Entity()
+@Entity('label')
 export class Label extends TimedEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
