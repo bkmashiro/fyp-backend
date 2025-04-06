@@ -5,6 +5,10 @@ export class CreateSceneDto {
   @IsNotEmpty()
   name: string;
 
+  @IsString()
+  @IsOptional()
+  description?: string;
+
   @IsArray()
   @IsNumber({}, { each: true })
   @IsNotEmpty()

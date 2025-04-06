@@ -9,6 +9,9 @@ export class Scene extends GeoEntity {
   @Column({ default: 'untitled' })
   name: string
 
+  @Column({ default: 'No description provided' })
+  description: string
+
   @OneToMany(() => GeoObject, (geoObject) => geoObject.scene)
   children: GeoObject[]
 
