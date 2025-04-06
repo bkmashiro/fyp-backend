@@ -29,8 +29,28 @@ export class GeoObjectService {
     })
   }
 
-  async update(id: string, updateGeoObjectDto: UpdateGeoObjectDto) {
-    return this.geoObjectRepository.update(id, updateGeoObjectDto)
+  async update(id: string, data: UpdateGeoObjectDto['data']) {
+    const geoObject = await this.geoObjectRepository.findOne({
+      where: { id },
+      relations: ['cloudAnchor'],
+    });
+    
+    if (!geoObject) {
+      throw new Error('GeoObject not found');
+    }
+
+    // 确保GeoJSON格式正确
+    if (data.relPosition && !data.relPosition.type) {
+      data.relPosition = {
+        type: 'Point',
+        coordinates: data.relPosition.coordinates
+      };
+    }
+
+    // 合并更新数据
+    Object.assign(geoObject, data);
+    
+    return this.geoObjectRepository.save(geoObject);
   }
 
   findObjectsByAnchor(anchorId: string) {

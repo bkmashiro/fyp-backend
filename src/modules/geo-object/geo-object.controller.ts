@@ -59,9 +59,10 @@ export class GeoObjectController {
 
   @Post()
   updateGeoObject(@Body() updateGeoObjectDto: UpdateGeoObjectDto) {
+    console.log('updateGeoObjectDto', updateGeoObjectDto)
     return this.geoObjectService.update(
       updateGeoObjectDto.id,
-      updateGeoObjectDto,
+      updateGeoObjectDto.data,
     )
   }
 }
