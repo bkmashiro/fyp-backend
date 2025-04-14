@@ -20,14 +20,14 @@ export class GeoImageService {
 
   async create(createGeoImageDto: CreateGeoImageDto) {
     const file = await this.fileService.getFile(createGeoImageDto.ossFileId)
-    console.log('file', file, createGeoImageDto)
+    // console.log('file', file, createGeoImageDto)
     const img = await GeoImage.create({
       ossFile: file,
       ...createGeoImageDto,
       cloudAnchor: await this.cloudAnchorService.findOne(createGeoImageDto.cloudAnchorId),
     }).save()
 
-    console.log('img', img)
+    // console.log('img', img)
 
     return img
   }

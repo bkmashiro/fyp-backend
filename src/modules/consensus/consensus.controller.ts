@@ -1,14 +1,22 @@
-import { Controller, Post } from '@nestjs/common'
+import { Controller, Post, Body, Get, Param, NotFoundException } from '@nestjs/common'
 import { HederaService } from './hedera/hedera.service'
 import { MessageMetaService } from './message-meta/message-meta.service'
 import { ValidateMessageDto } from './dto/validate-message.dto'
 import { CreateMessageDto } from './dto/create-message.dto'
+import { ConsensusService } from './consensus.service'
+import { RegisterImageCopyrightDto } from './dto/register-image-copyright.dto'
+import { VerifyImageCopyrightDto } from './dto/verify-image-copyright.dto'
+import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger'
+import { ImageCopyrightService } from './image-copyright.service'
 
 @Controller('consensus')
+@ApiTags('consensus')
 export class ConsensusController {
   constructor(
     private readonly hederaService: HederaService,
     private readonly messageMetaService: MessageMetaService,
+    private readonly consensusService: ConsensusService,
+    private readonly imageCopyrightService: ImageCopyrightService,
   ) {}
 
   @Post('create-message')
@@ -40,5 +48,36 @@ export class ConsensusController {
       validateMessageDto.from,
       validateMessageDto.to,
     )
+  }
+
+  @Post('register-image-copyright')
+  @ApiOperation({ summary: 'Register image copyright on blockchain' })
+  async registerImageCopyright(@Body() dto: RegisterImageCopyrightDto) {
+    return this.consensusService.registerImageCopyright(dto)
+  }
+
+  @Post('verify-image-copyright')
+  @ApiOperation({ summary: 'Verify if an image belongs to a specific user' })
+  async verifyImageCopyright(@Body() dto: VerifyImageCopyrightDto) {
+    return this.consensusService.verifyImageCopyright(dto)
+  }
+
+  @Get('copyright/:geoImageId')
+  @ApiOperation({ summary: 'Get copyright information for a specific image' })
+  @ApiParam({ name: 'geoImageId', description: 'GeoImage ID' })
+  async getCopyrightInfo(@Param('geoImageId') geoImageId: string) {
+    const info = await this.imageCopyrightService.getCopyrightInfo(geoImageId)
+    if (!info) {
+      return {
+        message: 'No copyright information found for this image',
+        status: 'NOT_FOUND',
+      }
+    }
+
+    return {
+      message: 'Copyright information retrieved successfully',
+      details: info,
+      status: 'SUCCESS',
+    }
   }
 }

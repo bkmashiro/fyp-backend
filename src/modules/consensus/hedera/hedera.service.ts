@@ -7,6 +7,7 @@ import {
   TopicMessageSubmitTransaction,
   TopicInfoQuery,
   TopicMessageQuery,
+  TopicUpdateTransaction,
 } from '@hashgraph/sdk'
 import { ConfigService } from '@nestjs/config'
 import { createHmac } from 'crypto'
@@ -18,7 +19,7 @@ import { debounceTime } from 'rxjs/operators'
 export class HederaService {
   client: Client
   hmacPassword: string
-  topicId: string
+  private _topicId: string
 
   constructor(
     private readonly configService: ConfigService,
@@ -31,7 +32,6 @@ export class HederaService {
       configService.getOrThrow('HEX_PRIVATE_KEY'),
     )
     this.hmacPassword = configService.getOrThrow('HMAC_PASSWORD')
-    this.topicId = configService.getOrThrow('HEDERA_TOPIC_ID')
 
     this.client = Client.forTestnet() // 或者使用 Client.forMainnet() 连接主网
     this.client.setOperator(operatorId, operatorKey)
@@ -42,6 +42,14 @@ export class HederaService {
     // this.fetchMessages(this.topicId)
     // this.findMessages(this.topicId)
     // }, 1000)
+  }
+
+  set topicId(value: string) {
+    this._topicId = value
+  }
+
+  get topicId(): string {
+    return this._topicId
   }
 
   async createTopic(): Promise<string> {
@@ -66,22 +74,26 @@ export class HederaService {
     const getReceipt = await sendResponse.getReceipt(this.client)
     console.log(`消息提交状态: ${getReceipt.status}`)
 
-    if (getReceipt.status._code === 0) {
-      // OK
+    if (getReceipt.status._code === 22) {
+      // SUCCESS
       this.messageMetaService.create({
         topicId: this.topicId,
         createdAt: new Date(),
         id: getReceipt.topicSequenceNumber.toString(),
         author,
       })
+      return `${this.topicId}@${getReceipt.topicSequenceNumber}`
     }
+
+    console.error('消息提交失败:', getReceipt.status)
+    return null
   }
 
   async submitHashMessage(message: string, author: string = null) {
     const hmac = createHmac('sha256', `${this.hmacPassword}${author || ''}`)
     hmac.update(message)
     const digest = hmac.digest('hex')
-    await this.submitMessage(digest, author)
+    return await this.submitMessage(digest, author)
   }
 
   async checkTopicExists(topicId: string): Promise<boolean> {
@@ -209,5 +221,31 @@ export class HederaService {
     }
 
     return false
+  }
+
+  async getTopicInfo(topicId: string) {
+    const topicInfo = await new TopicInfoQuery()
+      .setTopicId(topicId)
+      .execute(this.client);
+    
+    return {
+      memo: topicInfo.topicMemo,
+      expirationTime: new Date(topicInfo.expirationTime.toDate()),
+      autoRenewPeriod: Number(topicInfo.autoRenewPeriod.seconds),
+    };
+  }
+
+  async renewTopic(topicId: string) {
+    const topicInfo = await this.getTopicInfo(topicId);
+    const newExpirationTime = new Date(topicInfo.expirationTime);
+    newExpirationTime.setDate(newExpirationTime.getDate() + 90); // 续期90天
+    
+    const transaction = await new TopicUpdateTransaction()
+      .setTopicId(topicId)
+      .setExpirationTime(newExpirationTime)
+      .execute(this.client);
+    
+    await transaction.getReceipt(this.client);
+    return this.getTopicInfo(topicId);
   }
 }

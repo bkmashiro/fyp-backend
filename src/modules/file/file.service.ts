@@ -63,7 +63,7 @@ export class FileService {
 
   accessFilePath(key: string): string {
     const filePath = resolve(path.join(this.uploadPath, key))
-    console.log('filePath', filePath)
+    // console.log('filePath', filePath)
     if (!fs.existsSync(filePath)) {
       throw new HttpException('File not found', HttpStatus.NOT_FOUND)
     }

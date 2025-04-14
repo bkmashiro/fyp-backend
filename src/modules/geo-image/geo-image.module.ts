@@ -14,5 +14,6 @@ import { CloudAnchorModule } from '../cloud-anchor/cloud-anchor.module'
   ],
   controllers: [GeoImageController],
   providers: [GeoImageService],
+  exports: [GeoImageService],
 })
 export class GeoImageModule {}
