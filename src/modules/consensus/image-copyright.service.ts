@@ -12,10 +12,12 @@ export class ImageCopyrightService {
   ) {}
 
   async create(geoImage: GeoImage, userId: string, imageHash: string) {
+    // 将16进制字符串转换为bit(64)
+    const bitHash = this.hexToBit(imageHash);
     return this.imageCopyrightRepository.save({
       geoImage,
       userId,
-      imageHash,
+      imageHash: bitHash,
       status: CopyrightStatus.PENDING,
     })
   }
@@ -41,10 +43,24 @@ export class ImageCopyrightService {
   }
 
   async findByImageHash(imageHash: string) {
-    return this.imageCopyrightRepository.find({
-      where: { imageHash },
-      relations: ['geoImage'],
-    })
+    const bitHash = this.hexToBit(imageHash);
+    const maxDistance = Math.floor(64 * (1 - 0.6)); // 固定使用0.6的相似度阈值
+
+    const results = await this.imageCopyrightRepository
+      .createQueryBuilder('imageCopyright')
+      .select("*")
+      .addSelect([
+        `(1 - (bit_count(imageCopyright.imageHash # B'${bitHash}')::float / 64)) as similarity`
+      ])
+      .where(`bit_count(imageCopyright.imageHash # B'${bitHash}') <= :maxDistance`, {
+        maxDistance,
+      })
+      .getRawAndEntities();
+
+    return results.entities.map((entity, index) => ({
+      ...entity,
+      similarity: parseFloat(results.raw[index].similarity)
+    }));
   }
 
   async findByUserId(userId: string) {
@@ -55,13 +71,50 @@ export class ImageCopyrightService {
   }
 
   async findRegisteredByImageHash(imageHash: string) {
-    return this.imageCopyrightRepository.find({
-      where: {
-        imageHash,
-        status: CopyrightStatus.REGISTERED,
-      },
-      relations: ['geoImage'],
-    })
+    const bitHash = this.hexToBit(imageHash);
+    console.log('Querying with bit hash:', bitHash);
+    const threshold = Math.floor(64 * (1 - 0.6)); // 固定使用0.6的相似度阈值
+
+    const queryResults = await this.imageCopyrightRepository
+      .createQueryBuilder("imageCopyright")
+      .leftJoinAndSelect("imageCopyright.geoImage", "geoImage")
+      .addSelect("bit_count(imageCopyright.imageHash # B'" + bitHash + "')", "hamming_distance")
+      .addSelect("1 - (bit_count(imageCopyright.imageHash # B'" + bitHash + "')::float / 64)", "similarity")
+      .where("bit_count(imageCopyright.imageHash # B'" + bitHash + "') <= :threshold", { threshold })
+      .orderBy("similarity", "DESC")
+      .getRawAndEntities();
+
+    console.log('Query results:', queryResults.entities.length);
+    return queryResults.entities.map((entity, index) => ({
+      ...entity,
+      similarity: parseFloat(queryResults.raw[index].similarity)
+    }));
+  }
+
+  async findSimilarRegisteredImages(imageHash: string, threshold: number = 0.95) {
+    const bitHash = this.hexToBit(imageHash);
+    const maxDistance = Math.floor(64 * (1 - threshold)); // 计算最大允许的汉明距离
+
+    return this.imageCopyrightRepository
+      .createQueryBuilder('copyright')
+      .where('copyright.status = :status', { status: CopyrightStatus.REGISTERED })
+      .andWhere(`bit_count(copyright.imageHash # :bitHash) <= :maxDistance`, {
+        bitHash,
+        maxDistance,
+      })
+      .leftJoinAndSelect('copyright.geoImage', 'geoImage')
+      .getMany();
+  }
+
+  private hexToBit(hex: string): string {
+    // 将16进制字符串转换为bit(64)
+    const binary = parseInt(hex, 16).toString(2).padStart(64, '0');
+    return binary;
+  }
+
+  private bitToHex(bit: string): string {
+    // 将bit(64)转换为16进制字符串
+    return parseInt(bit, 2).toString(16).padStart(16, '0');
   }
 
   async getCopyrightInfo(geoImageId: string) {

@@ -7,6 +7,9 @@ import { FileService } from '../file/file.service';
 import { ImageCopyrightService } from './image-copyright.service';
 import { CopyrightStatus, ImageCopyright } from './entities/image-copyright.entity';
 import { imageHash } from 'image-hash';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 @Injectable()
 export class ConsensusService {
@@ -17,10 +20,14 @@ export class ConsensusService {
     private readonly imageCopyrightService: ImageCopyrightService,
   ) {}
 
+  defaultThreshold = 0.84;
+  exactThreshold = 0.92;
+  featureLength = 8;
+
   private async calculateImageHash(fileKey: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const filePath = this.fileService.accessFilePath(fileKey);
-      imageHash(filePath, 16, true, (error, data) => {
+      imageHash(filePath, this.featureLength, true, (error, data) => {
         if (error) {
           reject(error);
         } else {
@@ -28,6 +35,53 @@ export class ConsensusService {
         }
       });
     });
+  }
+
+  async calculateImageHashFromFile(file: Express.Multer.File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      // 创建临时文件
+      const tempDir = os.tmpdir();
+      const tempFilePath = path.join(tempDir, file.originalname);
+      
+      // 写入临时文件
+      fs.writeFile(tempFilePath, file.buffer, (err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        // 计算哈希值
+        imageHash(tempFilePath, this.featureLength, true, (error, data) => {
+          // 删除临时文件
+          fs.unlink(tempFilePath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.error('Error deleting temp file:', unlinkErr);
+            }
+          });
+
+          if (error) {
+            reject(error);
+          } else {
+            resolve(data);
+          }
+        });
+      });
+    });
+  }
+
+  async getImageHash(file: Express.Multer.File) {
+    try {
+      const hash = await this.calculateImageHashFromFile(file);
+      return {
+        success: true,
+        imageHash: hash,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
   }
 
   async registerImageCopyright(dto: RegisterImageCopyrightDto) {
@@ -53,19 +107,20 @@ export class ConsensusService {
 
     // 计算图片的哈希值
     const imageHash = await this.calculateImageHash(geoImage.ossFile.key);
-    
+    console.log('imageHash', imageHash);
     // 创建版权记录
     const copyrightRecord = await this.imageCopyrightService.create(
       geoImage,
       dto.userId,
-      imageHash
+      imageHash,
     ) as ImageCopyright;
 
     try {
       // 将消息上链
-      const message = `${imageHash}:${dto.userId}`;
+      const raw_message = `${imageHash}:${dto.userId}`;
+      const digest = this.hederaService.createDigest(raw_message, dto.userId)
       const transactionHash = await this.hederaService.submitHashMessage(
-        message,
+        raw_message, 
         dto.userId
       );
 
@@ -82,12 +137,12 @@ export class ConsensusService {
           topicId: this.hederaService.topicId,
           sequenceNumber: transactionHash.split('@')[1],
           timestamp: new Date().toISOString(),
-          message: message,
+          message: digest,
         }
       );
 
       return {
-        message,
+        message: digest,
         transactionHash,
         status: 'Image copyright registration successful',
         details: {
@@ -110,45 +165,42 @@ export class ConsensusService {
   async verifyImageCopyright(dto: VerifyImageCopyrightDto) {
     // 首先从本地数据库查询
     const records = await this.imageCopyrightService.findRegisteredByImageHash(dto.imageHash);
-    if (records.length > 0) {
-      const matchingRecord = records.find(record => record.userId === dto.userId);
-      if (matchingRecord) {
-        return {
-          isValid: true,
-          message: 'Image copyright verification successful (from local database)',
-          details: {
-            imageHash: dto.imageHash,
-            userId: dto.userId,
-            geoImageId: matchingRecord.geoImage.id,
-            status: matchingRecord.status,
-            transactionHash: matchingRecord.transactionHash,
-          }
-        };
-      }
-    }
+    
+    // 按相似度分类
+    const exactMatches = records.filter(record => record.similarity >= this.exactThreshold);
+    const potentialMatches = records.filter(record => record.similarity >= this.defaultThreshold && record.similarity < this.exactThreshold);
 
-    // 如果在本地数据库中没有找到，则查询区块链
-    const message = `${dto.imageHash}:${dto.userId}`;
-    const isValid = await this.hederaService.validateHashMessage(
-      message,
-      dto.userId,
-      dto.from,
-      dto.to
-    );
+    // 检查是否有完全匹配的记录
+    const exactMatch = exactMatches.find(record => record.userId === dto.userId);
+    const potentialMatch = potentialMatches.find(record => record.userId === dto.userId);
 
-    return {
-      isValid,
-      message: isValid 
-        ? 'Image copyright verification successful (from blockchain)' 
-        : 'Image copyright verification failed',
+    // 构建返回结果
+    const result = {
+      isValid: !!exactMatch,
+      message: exactMatch 
+        ? 'Image copyright verification successful (exact match)'
+        : potentialMatch
+          ? 'Potential match found, but not exact'
+          : records.length > 0
+            ? 'Similar images found but no matching user'
+            : 'No similar images found',
       details: {
         imageHash: dto.imageHash,
         userId: dto.userId,
-        timeRange: {
-          from: dto.from,
-          to: dto.to,
-        }
+        matches: {
+          exact: exactMatches,
+          potential: potentialMatches
+        },
+        verificationStatus: exactMatch 
+          ? 'EXACT_MATCH'
+          : potentialMatch
+            ? 'POTENTIAL_MATCH'
+            : records.length > 0
+              ? 'SIMILAR_FOUND_NO_USER_MATCH'
+              : 'NOT_FOUND'
       }
     };
+
+    return result;
   }
 }

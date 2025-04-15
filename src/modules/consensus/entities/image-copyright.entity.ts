@@ -1,11 +1,17 @@
 import { TimedEntity } from '@/shared/entities/TimedEntity'
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import {
+  Column,
+  Entity,
+  Index,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm'
 import { GeoImage } from '@/modules/geo-image/entities/geo-image.entity'
 
 export enum CopyrightStatus {
-  PENDING = 'pending',    // 未跟踪
-  REGISTERED = 'registered',  // 已跟踪
-  FAILED = 'failed',      // 注册失败
+  PENDING = 'pending', // 未跟踪
+  REGISTERED = 'registered', // 已跟踪
+  FAILED = 'failed', // 注册失败
 }
 
 @Entity()
@@ -13,7 +19,8 @@ export class ImageCopyright extends TimedEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @Column()
+  @Column({ type: 'bit', length: 8 * 8 })
+  @Index()
   imageHash: string
 
   @Column()
@@ -39,4 +46,4 @@ export class ImageCopyright extends TimedEntity {
 
   @ManyToOne(() => GeoImage, { eager: true })
   geoImage: GeoImage
-} 
+}

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { spawn } from 'child_process';
 import { CreateWatermarkDto } from './dto/CreateWatermark.dto';
 import { FileService } from '../file/file.service';
+import * as path from 'path';
 
 interface WatermarkOptions {
   passwordImg?: number;
@@ -154,6 +155,10 @@ export class WatermarkService {
       passwordImg: 1,
       passwordWm: 1
     });
-    return result;
+    return {
+      originalFile: file,
+      watermarkFile: path.basename(outputPath),
+      watermarkLength: result
+    }
   }
 }

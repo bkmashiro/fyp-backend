@@ -89,10 +89,14 @@ export class HederaService {
     return null
   }
 
-  async submitHashMessage(message: string, author: string = null) {
+  createDigest(message: string, author: string = null) {
     const hmac = createHmac('sha256', `${this.hmacPassword}${author || ''}`)
     hmac.update(message)
-    const digest = hmac.digest('hex')
+    return hmac.digest('hex')
+  }
+
+  async submitHashMessage(message: string, author: string = null) {
+    const digest = this.createDigest(message, author)
     return await this.submitMessage(digest, author)
   }
 
@@ -105,7 +109,7 @@ export class HederaService {
       const topicInfo = await new TopicInfoQuery()
         .setTopicId(topicId)
         .execute(this.client)
-      console.log(`主题存在: ${topicId}`, topicInfo)
+      // console.log(`主题存在: ${topicId}`, topicInfo)
       return true
     } catch (error) {
       if (error.toString().includes('INVALID_TOPIC_ID')) {

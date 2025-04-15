@@ -34,7 +34,7 @@ export class CloudAnchorService {
   ) {
     this.getToken().then((token) => {
       this.token = token
-      console.log('management token', this.token)
+      // console.log('management token', this.token)
     })
   }
 

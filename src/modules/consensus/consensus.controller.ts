@@ -1,4 +1,5 @@
-import { Controller, Post, Body, Get, Param, NotFoundException } from '@nestjs/common'
+import { Controller, Post, Body, Get, Param, NotFoundException, UseInterceptors, UploadedFile } from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
 import { HederaService } from './hedera/hedera.service'
 import { MessageMetaService } from './message-meta/message-meta.service'
 import { ValidateMessageDto } from './dto/validate-message.dto'
@@ -6,8 +7,9 @@ import { CreateMessageDto } from './dto/create-message.dto'
 import { ConsensusService } from './consensus.service'
 import { RegisterImageCopyrightDto } from './dto/register-image-copyright.dto'
 import { VerifyImageCopyrightDto } from './dto/verify-image-copyright.dto'
-import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger'
+import { ApiTags, ApiOperation, ApiParam, ApiConsumes } from '@nestjs/swagger'
 import { ImageCopyrightService } from './image-copyright.service'
+import { CalculateImageHashDto } from './dto/calculate-image-hash.dto'
 
 @Controller('consensus')
 @ApiTags('consensus')
@@ -79,5 +81,13 @@ export class ConsensusController {
       details: info,
       status: 'SUCCESS',
     }
+  }
+
+  @Post('calculate-image-hash')
+  @ApiOperation({ summary: 'Calculate hash for an uploaded image' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file'))
+  async calculateImageHash(@UploadedFile() file: Express.Multer.File) {
+    return this.consensusService.getImageHash(file)
   }
 }
