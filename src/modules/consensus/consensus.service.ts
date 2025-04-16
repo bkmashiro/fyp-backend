@@ -141,6 +141,13 @@ export class ConsensusService {
         }
       );
 
+      // 更新 message 和 messagePrefix
+      await this.imageCopyrightService.updateMessage(
+        copyrightRecord.id,
+        digest,
+        digest.substring(0, 8)
+      );
+
       return {
         message: digest,
         transactionHash,

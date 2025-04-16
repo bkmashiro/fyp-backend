@@ -90,4 +90,16 @@ export class ConsensusController {
   async calculateImageHash(@UploadedFile() file: Express.Multer.File) {
     return this.consensusService.getImageHash(file)
   }
+
+  @Get('geo-images/message-prefix/:prefix')
+  @ApiOperation({ summary: 'Find geo-images by message prefix' })
+  @ApiParam({ name: 'prefix', description: 'Message prefix to search for' })
+  async findGeoImagesByMessagePrefix(@Param('prefix') prefix: string) {
+    const geoImages = await this.imageCopyrightService.findGeoImagesByMessagePrefix(prefix);
+    return {
+      message: 'Geo-images retrieved successfully',
+      data: geoImages,
+      status: 'SUCCESS',
+    };
+  }
 }

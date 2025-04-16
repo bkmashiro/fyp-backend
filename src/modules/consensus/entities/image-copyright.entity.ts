@@ -36,12 +36,19 @@ export class ImageCopyright extends TimedEntity {
   @Column({ nullable: true })
   transactionHash: string
 
+  @Column({ nullable: true })
+  @Index()
+  message: string
+
+  @Column({ nullable: true, length: 8 })
+  @Index()
+  messagePrefix: string
+
   @Column({ type: 'json', nullable: true })
   blockchainInfo: {
     topicId: string
     sequenceNumber: string
     timestamp: string
-    message: string
   }
 
   @ManyToOne(() => GeoImage, { eager: true })

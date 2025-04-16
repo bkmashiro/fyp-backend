@@ -19,7 +19,7 @@ export class WatermarkController {
   async extractWatermark(@Body() body: ExtractWatermarkDto) {
     return this.watermarkService.extractWatermark(
       this.fileService.accessFilePath(body.fileKey),
-      body.watermarkLength,
+      body.watermarkLength || 63,
       {
         passwordImg: body.passwordImg,
         passwordWm: body.passwordWm

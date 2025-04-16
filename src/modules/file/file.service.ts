@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common'
 import * as path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import * as fs from 'fs'
@@ -24,6 +24,8 @@ export class FileService {
     }
 
     this.uploadPath = _path
+
+    this.checkAndCleanupFiles()
   }
 
   async saveFile(file: Express.Multer.File) {
@@ -70,5 +72,26 @@ export class FileService {
     return filePath
   }
 
+  async checkAndCleanupFiles() {
+    const files = await this.fileRepository.find()
+    const cleanupPromises = files.map(async (file) => {
+      const filePath = resolve(path.join(this.uploadPath, file.key))
+      if (!fs.existsSync(filePath)) {
+        // 如果文件不存在，从数据库中删除记录
+        await this.fileRepository.remove(file)
+        return file
+      }
+      return null
+    })
+
+    const removedFiles = (await Promise.all(cleanupPromises)).filter(Boolean)
+
+    Logger.debug(`Checked ${files.length} files, removed ${removedFiles.length} files`)
+    return {
+      totalChecked: files.length,
+      removedCount: removedFiles.length,
+      removedFiles
+    }
+  }
 
 }

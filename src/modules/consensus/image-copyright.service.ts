@@ -72,7 +72,7 @@ export class ImageCopyrightService {
 
   async findRegisteredByImageHash(imageHash: string) {
     const bitHash = this.hexToBit(imageHash);
-    console.log('Querying with bit hash:', bitHash);
+    // console.log('Querying with bit hash:', bitHash);
     const threshold = Math.floor(64 * (1 - 0.6)); // 固定使用0.6的相似度阈值
 
     const queryResults = await this.imageCopyrightRepository
@@ -84,7 +84,7 @@ export class ImageCopyrightService {
       .orderBy("similarity", "DESC")
       .getRawAndEntities();
 
-    console.log('Query results:', queryResults.entities.length);
+    // console.log('Query results:', queryResults.entities.length);
     return queryResults.entities.map((entity, index) => ({
       ...entity,
       similarity: parseFloat(queryResults.raw[index].similarity)
@@ -137,5 +137,24 @@ export class ImageCopyrightService {
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
     }
+  }
+
+  async findGeoImagesByMessagePrefix(prefix: string) {
+    if (prefix.length > 8) {
+      prefix = prefix.substring(0, 8);
+    }
+    return this.imageCopyrightRepository
+      .createQueryBuilder('copyright')
+      .leftJoinAndSelect('copyright.geoImage', 'geoImage')
+      .where('copyright.messagePrefix = :prefix', { prefix })
+      .getMany()
+      .then(records => records.map(record => record.geoImage));
+  }
+
+  async updateMessage(id: string, message: string, messagePrefix: string) {
+    return this.imageCopyrightRepository.update(id, {
+      message,
+      messagePrefix,
+    });
   }
 } 
