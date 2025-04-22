@@ -81,6 +81,11 @@ async function bootstrap() {
     logger.debug('codegen completed')
   }
 
+  app.enableCors({
+    origin: ['https://fyp.yuzhes.com'], // 允许你的前端地址
+    credentials: true,                  // 如果你要传 cookie 或 token
+  });
+
   const port = process.env.PORT || 3001;
   await app.listen(port);
   logger.log(`Application is running on port ${port}`);
