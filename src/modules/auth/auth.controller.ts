@@ -28,6 +28,7 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('auth/login')
   login(@Req() req: Request, @Body() _body: PasswordLoginDto) {
+    // @ts-ignore
     return this.authService.login(req.user)
   }
 
