@@ -81,6 +81,8 @@ async function bootstrap() {
     logger.debug('codegen completed')
   }
 
-  await app.listen(3001)
+  const port = process.env.PORT || 3001;
+  await app.listen(port);
+  logger.log(`Application is running on port ${port}`);
 }
 bootstrap()
