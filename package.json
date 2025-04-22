@@ -52,6 +52,7 @@
     "image-hash": "^5.3.2",
     "lodash": "^4.17.21",
     "nest-access-control": "^3.1.0",
+    "nest-cli": "^0.0.5",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
