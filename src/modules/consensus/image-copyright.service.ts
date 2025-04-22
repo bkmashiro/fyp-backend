@@ -91,20 +91,20 @@ export class ImageCopyrightService {
     }));
   }
 
-  async findSimilarRegisteredImages(imageHash: string, threshold: number = 0.95) {
-    const bitHash = this.hexToBit(imageHash);
-    const maxDistance = Math.floor(64 * (1 - threshold)); // 计算最大允许的汉明距离
+  // async findSimilarRegisteredImages(imageHash: string, threshold: number = 0.95) {
+  //   const bitHash = this.hexToBit(imageHash);
+  //   const maxDistance = Math.floor(64 * (1 - threshold)); // 计算最大允许的汉明距离
 
-    return this.imageCopyrightRepository
-      .createQueryBuilder('copyright')
-      .where('copyright.status = :status', { status: CopyrightStatus.REGISTERED })
-      .andWhere(`bit_count(copyright.imageHash # :bitHash) <= :maxDistance`, {
-        bitHash,
-        maxDistance,
-      })
-      .leftJoinAndSelect('copyright.geoImage', 'geoImage')
-      .getMany();
-  }
+  //   return this.imageCopyrightRepository
+  //     .createQueryBuilder('copyright')
+  //     .where('copyright.status = :status', { status: CopyrightStatus.REGISTERED })
+  //     .andWhere(`bit_count(copyright.imageHash # :bitHash) <= :maxDistance`, {
+  //       bitHash,
+  //       maxDistance,
+  //     })
+  //     .leftJoinAndSelect('copyright.geoImage', 'geoImage')
+  //     .getMany();
+  // }
 
   private hexToBit(hex: string): string {
     // 将16进制字符串转换为bit(64)

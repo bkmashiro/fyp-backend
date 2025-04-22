@@ -66,6 +66,9 @@ import { StatisticsModule } from './modules/statistics/statistics.module'
             max: 16,
             min: 1,
           },
+          ssl: {
+            rejectUnauthorized: false, 
+          }
         }
       }
       // dataSourceFactory: async (options) => {
