@@ -20,6 +20,9 @@ importers:
       '@hey-api/client-fetch':
         specifier: ^0.2.4
         version: 0.2.4
+      '@hey-api/openapi-ts':
+        specifier: ^0.52.9
+        version: 0.52.9(typescript@5.5.4)
       '@nestjs/cache-manager':
         specifier: ^3.0.1
         version: 3.0.1(@nestjs/common@10.4.1(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/core@10.4.1(@nestjs/common@10.4.1(class-transformer@0.5.1)(class-validator@0.14.1)(reflect-metadata@0.1.14)(rxjs@7.8.1))(@nestjs/platform-express@10.4.1)(@nestjs/websockets@11.0.20)(encoding@0.1.13)(reflect-metadata@0.1.14)(rxjs@7.8.1))(cache-manager@6.4.2)(keyv@5.3.3)(rxjs@7.8.1)
@@ -132,9 +135,6 @@ importers:
         specifier: ^10.0.0
         version: 10.0.0
     devDependencies:
-      '@hey-api/openapi-ts':
-        specifier: ^0.52.9
-        version: 0.52.9(typescript@5.5.4)
       '@nestjs/cli':
         specifier: ^10.4.4
         version: 10.4.4

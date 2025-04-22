@@ -63,10 +63,10 @@
     "sharp": "^0.33.5",
     "typeorm": "^0.3.20",
     "uuid": "^10.0.0",
-    "axios": "^1.7.4"
+    "axios": "^1.7.4",
+    "@hey-api/openapi-ts": "^0.52.9"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.52.9",
     "@nestjs/cli": "^10.4.4",
     "@nestjs/schematics": "^10.0.0",
     "@nestjs/testing": "^10.0.0",
