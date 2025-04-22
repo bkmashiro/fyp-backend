@@ -32,10 +32,10 @@ export class CloudAnchorService {
     @InjectRepository(CloudAnchor)
     private readonly cloudAnchorRepository: Repository<CloudAnchor>,
   ) {
-    this.getToken().then((token) => {
-      this.token = token
-      // console.log('management token', this.token)
-    })
+    // this.getToken().then((token) => {
+    //   this.token = token
+    //   // console.log('management token', this.token)
+    // })
   }
 
   async create(createCloudAnchorDto: CreateCloudAnchorDto) {

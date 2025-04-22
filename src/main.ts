@@ -46,40 +46,40 @@ async function bootstrap() {
   );
   app.setGlobalPrefix('api')
   const configService = app.get(ConfigService)
-  const config = new DocumentBuilder()
-    .setTitle('SnapSphere API')
-    .setDescription('SnapSphere API')
-    .setVersion('1.0')
-    .addTag('ss')
-    .addBearerAuth()
-    .build()
 
-  const document = SwaggerModule.createDocument(app, config, {
-    operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
-    // deepScanRoutes: true,
-  })
+  // Only run development operations in non-production environment
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('SnapSphere API')
+      .setDescription('SnapSphere API')
+      .setVersion('1.0')
+      .addTag('ss')
+      .addBearerAuth()
+      .build()
 
-  // rewrite all method name
-  simplifyOperationId(document.paths)
-  // console.log(document.paths)
-  SwaggerModule.setup('api', app, document)
-  logger.debug('Swagger API is up on http://localhost:3001/api')
+    const document = SwaggerModule.createDocument(app, config, {
+      operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
+    })
 
-  // save the json file
-  const fs = require('fs')
-  fs.writeFileSync('./openapi.json', JSON.stringify(document))
-  logger.log('openapi.json file has been created')
+    // rewrite all method name
+    simplifyOperationId(document.paths)
+    SwaggerModule.setup('api', app, document)
+    logger.debug('Swagger API is up on http://localhost:3001/api')
 
-  createClient({
-    client: '@hey-api/client-axios',
-    input: './openapi.json',
-    output: configService.getOrThrow('SWAGGER_CODEGEN_OUTPUT'),
-    services: { asClass: true },
-  })
+    // save the json file
+    const fs = require('fs')
+    fs.writeFileSync('./openapi.json', JSON.stringify(document))
+    logger.log('openapi.json file has been created')
 
-  logger.debug('codegen completed')
+    createClient({
+      client: '@hey-api/client-axios',
+      input: './openapi.json',
+      output: configService.getOrThrow('SWAGGER_CODEGEN_OUTPUT'),
+      services: { asClass: true },
+    })
 
-  // app.use('/files', express.static(configService.getOrThrow('UPLOAD_PATH')));
+    logger.debug('codegen completed')
+  }
 
   await app.listen(3001)
 }
