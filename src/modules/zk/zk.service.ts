@@ -9,17 +9,20 @@ import { ethers } from 'ethers'
 import { ArtworkProof } from './types/zk.types'
 import { HederaService } from '../consensus/hedera/hedera.service'
 import { TopicType } from '../consensus/types/topic-type.enum'
+import * as path from 'path'
+import * as os from 'os'
 
 @Injectable()
 export class ZkService {
   private readonly logger = new Logger(ZkService.name)
+  private readonly keyPairs: Map<string, { privateKey: string, publicKey: string, address: string }> = new Map()
 
   constructor(
     private readonly hederaService: HederaService
   ) {
-    setTimeout(() => {
-      this.generateTestData()
-    }, 3000)
+    // setTimeout(() => {
+    //   this.generateTestData()
+    // }, 3000)
   }
 
   private async generateTestData() {
@@ -153,27 +156,104 @@ export class ZkService {
     try {
       this.logger.log('Verifying artwork ownership...')
       
-      // 从链上获取记录
+      // 先只根据 artworkHash 查找记录
       const onChainRecord = await this.hederaService.findRecord(TopicType.ARTWORK, {
-        artworkHash: dto.artworkHash,
-        pubKeyHash: dto.ownerAddress
+        artworkHash: dto.artworkHash
       })
 
+      this.logger.debug('On-chain record:', onChainRecord)
+
       if (!onChainRecord) {
+        this.logger.debug('No on-chain record found')
         return { isValid: false, isOwner: false, hasOnChainRecord: false }
       }
 
       // 验证证明
       const isValid = await ZKUtils.verifyProof(onChainRecord.proof, onChainRecord.publicSignals)
+      this.logger.debug('Proof verification result:', isValid)
+      
+      // 检查地址匹配
+      const isOwner = onChainRecord.pubKeyHash.toLowerCase().trim() === dto.ownerAddress.toLowerCase().trim()
+      this.logger.debug('Address match result:', isOwner)
+      this.logger.debug('Expected address:', dto.ownerAddress)
+      this.logger.debug('Actual address:', onChainRecord.pubKeyHash)
       
       return {
         isValid,
-        isOwner: isValid && onChainRecord.pubKeyHash === dto.ownerAddress,
-        hasOnChainRecord: true
+        isOwner,
+        hasOnChainRecord: true,
+        details: {
+          expectedAddress: dto.ownerAddress,
+          actualAddress: onChainRecord.pubKeyHash,
+          proofValid: isValid
+        }
       }
     } catch (error) {
       this.logger.error('Failed to verify artwork ownership', error.stack)
       throw new Error('Failed to verify artwork ownership')
     }
+  }
+
+  async generateKeccak256Hash(file: Express.Multer.File): Promise<{ hash: string }> {
+    try {
+      this.logger.log('Generating keccak256 hash from file...')
+      
+      // 创建临时文件
+      const tempDir = os.tmpdir()
+      const tempFilePath = path.join(tempDir, file.originalname)
+      
+      // 写入临时文件
+      await fs.promises.writeFile(tempFilePath, file.buffer)
+      
+      // 读取文件内容
+      const fileContent = await fs.promises.readFile(tempFilePath)
+      
+      // 生成哈希
+      const hash = ethers.keccak256(fileContent)
+      
+      // 删除临时文件
+      await fs.promises.unlink(tempFilePath)
+      
+      return { hash }
+    } catch (error) {
+      this.logger.error('Failed to generate keccak256 hash', error.stack)
+      throw new Error('Failed to generate keccak256 hash')
+    }
+  }
+
+  async generateKeyPair(): Promise<{ 
+    address: string,
+    publicKey: string,
+    privateKey: string
+  }> {
+    try {
+      this.logger.log('Generating key pair...')
+      
+      // 生成随机钱包
+      const wallet = ethers.Wallet.createRandom()
+      
+      return {
+        address: wallet.address,
+        publicKey: wallet.publicKey,
+        privateKey: wallet.privateKey
+      }
+    } catch (error) {
+      this.logger.error('Failed to generate key pair', error.stack)
+      throw new Error('Failed to generate key pair')
+    }
+  }
+
+  async downloadKeyPair(downloadToken: string): Promise<{ 
+    privateKey: string,
+    publicKey: string,
+    address: string 
+  } | null> {
+    const keyPair = this.keyPairs.get(downloadToken)
+    if (keyPair) {
+      // 获取后立即删除
+      this.keyPairs.delete(downloadToken)
+      return keyPair
+    }
+    return null
   }
 }

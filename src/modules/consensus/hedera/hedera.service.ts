@@ -167,7 +167,7 @@ export class HederaService {
           },
           (message) => {
             const text = Buffer.from(message.contents).toString()
-            console.log(`历史消息：`, text, message.sequenceNumber)
+            // console.log(`历史消息：`, text, message.sequenceNumber)
             messages.push({
               message: text,
               seqNo: message.sequenceNumber.toString(),
@@ -265,18 +265,33 @@ export class HederaService {
       .execute(this.client)
   }
 
-  async findRecord(type: TopicType, { artworkHash, pubKeyHash }: { artworkHash: string; pubKeyHash: string }) {
+  async findRecord(
+    type: TopicType, 
+    params: { 
+      artworkHash: string; 
+      pubKeyHash?: string 
+    }
+  ) {
     const topicId = this.getTopicId(type)
-    console.log(`在 topic ${topicId} 中查找记录:`, { artworkHash, pubKeyHash })
+    console.log(`在 topic ${topicId} 中查找记录:`, params)
     const messages = await this.findMessages(type)
     
     for (const { message, seqNo } of messages) {
       try {
         console.log(`尝试解析消息 (seqNo: ${seqNo}):`, message)
         const record = JSON.parse(message)
-        if (record.artworkHash === artworkHash && record.pubKeyHash === pubKeyHash) {
-          console.log('找到匹配的记录:', record)
-          return record
+        // 如果提供了 pubKeyHash，则同时匹配 artworkHash 和 pubKeyHash
+        // 否则只匹配 artworkHash
+        if (params.pubKeyHash) {
+          if (record.artworkHash === params.artworkHash && record.pubKeyHash === params.pubKeyHash) {
+            console.log('找到完全匹配的记录:', record)
+            return record
+          }
+        } else {
+          if (record.artworkHash === params.artworkHash) {
+            console.log('找到 artworkHash 匹配的记录:', record)
+            return record
+          }
         }
       } catch (error) {
         console.error(`解析消息失败 (seqNo: ${seqNo}):`, error)
