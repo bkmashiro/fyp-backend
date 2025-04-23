@@ -77,9 +77,9 @@ export class WatermarkService {
     
     // Convert each chunk to character
     const result = chunks.map((chunk, index) => {
-      // For the last chunk, pad zeros at the beginning
-      const paddedChunk = index === chunks.length - 1 && chunk.length < 8 
-        ? chunk.padStart(8, '0') 
+      // For the last chunk, pad ones at the end
+      const paddedChunk = index === chunks.length - 1 && chunk.length < 8
+        ? chunk.padEnd(8, '1')
         : chunk;
       const charCode = parseInt(paddedChunk, 2);
       console.log(`Chunk: ${chunk}, Padded: ${paddedChunk}, CharCode: ${charCode}, Char: ${String.fromCharCode(charCode)}`);
