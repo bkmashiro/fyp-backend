@@ -14,12 +14,13 @@ import { createHmac } from 'crypto'
 import { MessageMetaService } from '../message-meta/message-meta.service'
 import { Subject } from 'rxjs'
 import { debounceTime } from 'rxjs/operators'
+import { TopicType } from '../types/topic-type.enum'
 
 @Injectable()
 export class HederaService {
   client: Client
   hmacPassword: string
-  private _topicId: string
+  private topicIds: Map<TopicType, string> = new Map()
 
   constructor(
     private readonly configService: ConfigService,
@@ -35,30 +36,22 @@ export class HederaService {
 
     this.client = Client.forTestnet() // 或者使用 Client.forMainnet() 连接主网
     this.client.setOperator(operatorId, operatorKey)
-
-    // setTimeout(() => {
-    // this.submitHashMessage('hello snapsphere', 'yuzhe')
-    // this.validateHashMessage('hello snapsphere', 'yuzhe')
-    // this.fetchMessages(this.topicId)
-    // this.findMessages(this.topicId)
-    // }, 1000)
   }
 
-  set topicId(value: string) {
-    this._topicId = value
+  setTopicId(type: TopicType, value: string) {
+    console.log(`set topicId for ${type}:`, value)
+    this.topicIds.set(type, value)
   }
 
-  get topicId(): string {
-    return this._topicId
+  getTopicId(type: TopicType): string {
+    const topicId = this.topicIds.get(type)
+    if (!topicId) {
+      throw new Error(`Topic ID for type ${type} is not set`)
+    }
+    return topicId
   }
 
   async createTopic(): Promise<string> {
-    const isOldTopicExists = await this.checkTopicExists(this.topicId)
-
-    if (isOldTopicExists) {
-      return this.topicId
-    }
-
     const transaction = await new TopicCreateTransaction().execute(this.client)
     const receipt = await transaction.getReceipt(this.client)
     const topicId = receipt.topicId
@@ -66,9 +59,10 @@ export class HederaService {
     return topicId.toString()
   }
 
-  async submitMessage(message: string, author: string = null) {
+  async submitMessage(type: TopicType, message: string, author: string = null) {
+    const topicId = this.getTopicId(type)
     const sendResponse = await new TopicMessageSubmitTransaction({
-      topicId: this.topicId,
+      topicId,
       message,
     }).execute(this.client)
     const getReceipt = await sendResponse.getReceipt(this.client)
@@ -77,12 +71,12 @@ export class HederaService {
     if (getReceipt.status._code === 22) {
       // SUCCESS
       this.messageMetaService.create({
-        topicId: this.topicId,
+        topicId,
         createdAt: new Date(),
         id: getReceipt.topicSequenceNumber.toString(),
         author,
       })
-      return `${this.topicId}@${getReceipt.topicSequenceNumber}`
+      return `${topicId}@${getReceipt.topicSequenceNumber}`
     }
 
     console.error('消息提交失败:', getReceipt.status)
@@ -95,9 +89,9 @@ export class HederaService {
     return hmac.digest('hex')
   }
 
-  async submitHashMessage(message: string, author: string = null) {
+  async submitHashMessage(type: TopicType, message: string, author: string = null) {
     const digest = this.createDigest(message, author)
-    return await this.submitMessage(digest, author)
+    return await this.submitMessage(type, digest, author)
   }
 
   async checkTopicExists(topicId: string): Promise<boolean> {
@@ -121,7 +115,8 @@ export class HederaService {
     }
   }
 
-  async fetchMessages(topicId: string): Promise<void> {
+  async fetchMessages(type: TopicType): Promise<void> {
+    const topicId = this.getTopicId(type)
     return new Promise((resolve, reject) => {
       new TopicMessageQuery()
         .setTopicId(topicId)
@@ -147,10 +142,11 @@ export class HederaService {
   }
 
   async findMessages(
-    topicId: string,
+    type: TopicType,
     begin?: Date,
     end?: Date,
   ): Promise<{ message: string; seqNo: string }[]> {
+    const topicId = this.getTopicId(type)
     const messages: Array<{ message: string; seqNo: string }> = []
     return new Promise((resolve, reject) => {
       // 用 Subject 来触发消息到达事件
@@ -203,14 +199,15 @@ export class HederaService {
   }
 
   async validateHashMessage(
+    type: TopicType,
     content: string,
     author: string = null,
     begin?: Date,
     end?: Date,
   ) {
-    const messages = await this.findMessages(this.topicId, begin, end)
+    const messages = await this.findMessages(type, begin, end)
     console.log(
-      `topicId: ${this.topicId}, from: ${begin}, to: ${end}`,
+      `topicId: ${this.getTopicId(type)}, from: ${begin}, to: ${end}`,
       messages,
     )
     if (messages) {
@@ -230,26 +227,64 @@ export class HederaService {
   async getTopicInfo(topicId: string) {
     const topicInfo = await new TopicInfoQuery()
       .setTopicId(topicId)
-      .execute(this.client);
-    
+      .execute(this.client)
+
     return {
       memo: topicInfo.topicMemo,
       expirationTime: new Date(topicInfo.expirationTime.toDate()),
       autoRenewPeriod: Number(topicInfo.autoRenewPeriod.seconds),
-    };
+    }
   }
 
   async renewTopic(topicId: string) {
-    const topicInfo = await this.getTopicInfo(topicId);
-    const newExpirationTime = new Date(topicInfo.expirationTime);
-    newExpirationTime.setDate(newExpirationTime.getDate() + 90); // 续期90天
-    
+    const topicInfo = await this.getTopicInfo(topicId)
+    const newExpirationTime = new Date(topicInfo.expirationTime)
+    newExpirationTime.setDate(newExpirationTime.getDate() + 90) // 续期90天
+
     const transaction = await new TopicUpdateTransaction()
       .setTopicId(topicId)
       .setExpirationTime(newExpirationTime)
-      .execute(this.client);
+      .execute(this.client)
+
+    await transaction.getReceipt(this.client)
+    return this.getTopicInfo(topicId)
+  }
+
+  async submitToChain(type: TopicType, { proof, publicSignals, artworkHash, pubKeyHash }) {
+    const topicId = this.getTopicId(type)
+    await new TopicMessageSubmitTransaction()
+      .setTopicId(topicId)
+      .setMessage(
+        JSON.stringify({
+          artworkHash,
+          pubKeyHash,
+          proof,
+          publicSignals,
+        }),
+      )
+      .execute(this.client)
+  }
+
+  async findRecord(type: TopicType, { artworkHash, pubKeyHash }: { artworkHash: string; pubKeyHash: string }) {
+    const topicId = this.getTopicId(type)
+    console.log(`在 topic ${topicId} 中查找记录:`, { artworkHash, pubKeyHash })
+    const messages = await this.findMessages(type)
     
-    await transaction.getReceipt(this.client);
-    return this.getTopicInfo(topicId);
+    for (const { message, seqNo } of messages) {
+      try {
+        console.log(`尝试解析消息 (seqNo: ${seqNo}):`, message)
+        const record = JSON.parse(message)
+        if (record.artworkHash === artworkHash && record.pubKeyHash === pubKeyHash) {
+          console.log('找到匹配的记录:', record)
+          return record
+        }
+      } catch (error) {
+        console.error(`解析消息失败 (seqNo: ${seqNo}):`, error)
+        continue
+      }
+    }
+    
+    console.log('未找到匹配的记录')
+    return null
   }
 }

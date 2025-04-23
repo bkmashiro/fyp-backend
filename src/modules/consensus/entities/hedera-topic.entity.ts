@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { TopicType } from '../types/topic-type.enum';
 
 @Entity('hedera_topics')
 export class HederaTopic {
@@ -7,6 +8,13 @@ export class HederaTopic {
 
   @Column({ unique: true })
   topicId: string;
+
+  @Column({
+    type: 'enum',
+    enum: TopicType,
+    default: TopicType.MESSAGE
+  })
+  type: TopicType;
 
   @Column({ nullable: true })
   memo: string;

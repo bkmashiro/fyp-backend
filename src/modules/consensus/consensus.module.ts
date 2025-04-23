@@ -19,6 +19,6 @@ import { HederaTopic } from './entities/hedera-topic.entity';
   ],
   providers: [HederaService, ConsensusService, ImageCopyrightService, HederaTopicService],
   controllers: [ConsensusController],
-  exports: [ImageCopyrightService],
+  exports: [ImageCopyrightService, HederaService],
 })
 export class ConsensusModule {}

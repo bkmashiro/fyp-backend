@@ -26,6 +26,7 @@ import { CloudAnchorModule } from './modules/cloud-anchor/cloud-anchor.module';
 import { LabelModule } from './modules/label/label.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { StatisticsModule } from './modules/statistics/statistics.module'
+import { ZkModule } from './modules/zk/zk.module';
 
 @Module({
   imports: [
@@ -108,6 +109,7 @@ import { StatisticsModule } from './modules/statistics/statistics.module'
     CloudAnchorModule,
     LabelModule,
     StatisticsModule,
+    ZkModule,
   ],
   controllers: [AppController],
   providers: [AppService, InitDbService],

@@ -9,7 +9,7 @@ import { RegisterImageCopyrightDto } from './dto/register-image-copyright.dto'
 import { VerifyImageCopyrightDto } from './dto/verify-image-copyright.dto'
 import { ApiTags, ApiOperation, ApiParam, ApiConsumes } from '@nestjs/swagger'
 import { ImageCopyrightService } from './image-copyright.service'
-import { CalculateImageHashDto } from './dto/calculate-image-hash.dto'
+import { TopicType } from './types/topic-type.enum'
 
 @Controller('consensus')
 @ApiTags('consensus')
@@ -24,6 +24,7 @@ export class ConsensusController {
   @Post('create-message')
   async createMessage(createMessageDto: CreateMessageDto) {
     this.hederaService.submitHashMessage(
+      TopicType.MESSAGE,
       createMessageDto.message,
       createMessageDto.author,
     )
@@ -45,6 +46,7 @@ export class ConsensusController {
   @Post('validate-message')
   async validateMessage(validateMessageDto: ValidateMessageDto) {
     return await this.hederaService.validateHashMessage(
+      TopicType.MESSAGE,
       validateMessageDto.message,
       validateMessageDto.author,
       validateMessageDto.from,

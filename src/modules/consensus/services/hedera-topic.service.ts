@@ -5,10 +5,11 @@ import { HederaTopic } from '../entities/hedera-topic.entity'
 import { HederaService } from '../hedera/hedera.service'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { ConfigService } from '@nestjs/config'
+import { TopicType } from '../types/topic-type.enum'
 
 @Injectable()
 export class HederaTopicService implements OnModuleInit {
-  private currentTopicId: string
+  private topicIds: Map<TopicType, string> = new Map()
 
   constructor(
     @InjectRepository(HederaTopic)
@@ -18,14 +19,21 @@ export class HederaTopicService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // 系统启动时恢复或创建 topic
-    await this.initializeTopic()
+    // 系统启动时恢复或创建 topics
+    await this.initializeTopics()
   }
 
-  private async initializeTopic() {
+  private async initializeTopics() {
+    // 为每种类型初始化 topic
+    for (const type of Object.values(TopicType)) {
+      await this.initializeTopic(type)
+    }
+  }
+
+  private async initializeTopic(type: TopicType) {
     // 尝试从数据库获取活跃的 topic
     const activeTopic = await this.topicRepository.findOne({
-      where: { isActive: true },
+      where: { isActive: true, type },
       order: { createdAt: 'DESC' },
     })
 
@@ -35,9 +43,8 @@ export class HederaTopicService implements OnModuleInit {
         activeTopic.topicId,
       )
       if (isValid) {
-        this.currentTopicId = activeTopic.topicId
-        this.hederaService.topicId = activeTopic.topicId
-        Logger.debug(`恢复使用现有 topic: ${this.currentTopicId}`)
+        this.hederaService.setTopicId(type, activeTopic.topicId)
+        Logger.debug(`恢复使用现有 ${type} topic: ${activeTopic.topicId}`)
         return
       } else {
         // 如果 topic 无效，标记为非活跃
@@ -52,6 +59,7 @@ export class HederaTopicService implements OnModuleInit {
     // 保存新 topic 信息到数据库
     const newTopic = this.topicRepository.create({
       topicId: newTopicId,
+      type,
       memo: topicInfo.memo,
       expirationTime: topicInfo.expirationTime,
       autoRenewPeriod: Number(topicInfo.autoRenewPeriod),
@@ -59,9 +67,8 @@ export class HederaTopicService implements OnModuleInit {
     })
 
     await this.topicRepository.save(newTopic)
-    this.currentTopicId = newTopicId
-    this.hederaService.topicId = newTopicId
-    Logger.debug(`创建并使用新 topic: ${this.currentTopicId}`)
+    this.hederaService.setTopicId(type, newTopicId)
+    Logger.debug(`创建并使用新 ${type} topic: ${newTopicId}`)
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
@@ -90,22 +97,26 @@ export class HederaTopicService implements OnModuleInit {
             expirationTime: updatedInfo.expirationTime,
           })
 
-          Logger.debug(`Topic ${topic.topicId} 已续期`)
+          Logger.debug(`Topic ${topic.topicId} (${topic.type}) 已续期`)
         }
       } catch (error) {
-        Logger.error(`处理 topic ${topic.topicId} 时出错:`, error)
+        Logger.error(`处理 topic ${topic.topicId} (${topic.type}) 时出错:`, error)
         // 如果 topic 已失效，标记为非活跃
         if (error.toString().includes('INVALID_TOPIC_ID')) {
           await this.topicRepository.update(topic.id, { isActive: false })
           // 创建新的 topic
-          await this.initializeTopic()
+          await this.initializeTopic(topic.type)
         }
       }
     }
   }
 
-  getCurrentTopicId(): string {
-    return this.currentTopicId
+  getTopicId(type: TopicType): string {
+    const topicId = this.topicIds.get(type)
+    if (!topicId) {
+      throw new Error(`Topic ID for type ${type} is not set`)
+    }
+    return topicId
   }
 
   async getTopicHistory() {

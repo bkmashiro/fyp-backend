@@ -10,7 +10,7 @@ import { imageHash } from 'image-hash';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-
+import { TopicType } from './types/topic-type.enum';
 @Injectable()
 export class ConsensusService {
   constructor(
@@ -120,6 +120,7 @@ export class ConsensusService {
       const raw_message = `${imageHash}:${dto.userId}`;
       const digest = this.hederaService.createDigest(raw_message, dto.userId)
       const transactionHash = await this.hederaService.submitHashMessage(
+        TopicType.MESSAGE,
         raw_message, 
         dto.userId
       );
@@ -134,7 +135,7 @@ export class ConsensusService {
         CopyrightStatus.REGISTERED,
         transactionHash,
         {
-          topicId: this.hederaService.topicId,
+          topicId: this.hederaService.getTopicId(TopicType.MESSAGE),
           sequenceNumber: transactionHash.split('@')[1],
           timestamp: new Date().toISOString(),
           message: digest,
