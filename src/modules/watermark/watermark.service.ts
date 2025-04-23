@@ -69,14 +69,25 @@ export class WatermarkService {
   private binaryArrayToString(bits: number[]): string {
     // Convert array of bits to binary string
     const binaryStr = bits.join('');
+    console.log('Binary string:', binaryStr);
     
     // Split into 8-bit chunks
     const chunks = binaryStr.match(/.{1,8}/g) || [];
+    console.log('Chunks:', chunks);
     
     // Convert each chunk to character
-    return chunks.map(chunk => 
-      String.fromCharCode(parseInt(chunk.padEnd(8, '0'), 2))
-    ).join('');
+    const result = chunks.map((chunk, index) => {
+      // For the last chunk, pad zeros at the beginning
+      const paddedChunk = index === chunks.length - 1 && chunk.length < 8 
+        ? chunk.padStart(8, '0') 
+        : chunk;
+      const charCode = parseInt(paddedChunk, 2);
+      console.log(`Chunk: ${chunk}, Padded: ${paddedChunk}, CharCode: ${charCode}, Char: ${String.fromCharCode(charCode)}`);
+      return String.fromCharCode(charCode);
+    }).join('');
+    
+    console.log('Final result:', result);
+    return result;
   }
 
   async embedWatermark(
