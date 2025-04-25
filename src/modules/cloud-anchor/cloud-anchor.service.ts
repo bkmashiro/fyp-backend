@@ -32,10 +32,10 @@ export class CloudAnchorService {
     @InjectRepository(CloudAnchor)
     private readonly cloudAnchorRepository: Repository<CloudAnchor>,
   ) {
-    // this.getToken().then((token) => {
-    //   this.token = token
-    //   // console.log('management token', this.token)
-    // })
+    this.getToken().then((token) => {
+      this.token = token
+      // console.log('management token', this.token)
+    })
   }
 
   async create(createCloudAnchorDto: CreateCloudAnchorDto) {
@@ -44,9 +44,12 @@ export class CloudAnchorService {
       ...createCloudAnchorDto,
       anchor: {
         type: 'Point',
-        coordinates: createCloudAnchorDto.position,
+        coordinates: [
+          createCloudAnchorDto.anchorPosition[0],
+          createCloudAnchorDto.anchorPosition[2],
+        ],
       },
-      altitude: createCloudAnchorDto.altitude,
+      altitude: createCloudAnchorDto.anchorPosition[1],
     }).save()
 
     // By default, set expire time to 30 days

@@ -25,7 +25,7 @@ export class CloudAnchor extends BaseEntity {
   })
   anchor: Point
 
-  @Column({ default: 0 })
+  @Column('float', { default: 0 })
   altitude: number
 
   @OneToMany(() => GeoObject, (geoObject) => geoObject.cloudAnchor)
