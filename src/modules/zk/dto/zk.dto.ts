@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, ValidateNested } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, ValidateNested, IsArray, IsObject } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateArtworkProofDto {
@@ -11,22 +11,41 @@ export class CreateArtworkProofDto {
   signature: string;    // 用户对艺术品的签名
 }
 
+export class ZKProofDto {
+  @IsArray()
+  @IsNotEmpty()
+  pi_a: string[];      // 证明的第一部分
+
+  @IsArray()
+  @IsNotEmpty()
+  pi_b: string[][];    // 证明的第二部分
+
+  @IsArray()
+  @IsNotEmpty()
+  pi_c: string[];      // 证明的第三部分
+
+  @IsString()
+  @IsNotEmpty()
+  protocol: string;    // 协议类型
+
+  @IsString()
+  @IsNotEmpty()
+  curve: string;       // 曲线类型
+}
+
 export class OnChainRecordDto {
-  @IsString()
+  @ValidateNested()
+  @Type(() => ZKProofDto)
   @IsNotEmpty()
-  proof: any;          // 零知识证明
+  proof: ZKProofDto;   // 零知识证明
+
+  @IsArray()
+  @IsNotEmpty()
+  publicSignals: string[]; // 公共信号
 
   @IsString()
   @IsNotEmpty()
-  publicSignals: any[]; // 公共信号
-
-  @IsString()
-  @IsNotEmpty()
-  artworkHash: string;  // 艺术品的哈希值
-
-  @IsString()
-  @IsNotEmpty()
-  pubKeyHash: string;   // 所有者公钥哈希
+  ownerAddress: string;   // 所有者地址
 }
 
 export class VerifyArtworkOwnershipDto {

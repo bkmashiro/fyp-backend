@@ -15,11 +15,12 @@ import * as os from 'os'
 @Injectable()
 export class ZkService {
   private readonly logger = new Logger(ZkService.name)
-  private readonly keyPairs: Map<string, { privateKey: string, publicKey: string, address: string }> = new Map()
+  private readonly keyPairs: Map<
+    string,
+    { privateKey: string; publicKey: string; address: string }
+  > = new Map()
 
-  constructor(
-    private readonly hederaService: HederaService
-  ) {
+  constructor(private readonly hederaService: HederaService) {
     // setTimeout(() => {
     //   this.generateTestData()
     // }, 3000)
@@ -29,14 +30,14 @@ export class ZkService {
     try {
       // 生成测试钱包
       const wallet = ethers.Wallet.createRandom()
-      
+
       // 生成测试艺术品数据
-      const artworkData = "Test Artwork #1"
+      const artworkData = 'Test Artwork #1'
       const artworkHash = ethers.keccak256(ethers.toUtf8Bytes(artworkData))
-      
+
       // 签名
       const signature = await wallet.signMessage(artworkHash)
-      
+
       // 打印测试数据
       console.log('\n=== 测试数据 ===')
       console.log('艺术品数据:', artworkData)
@@ -49,14 +50,14 @@ export class ZkService {
       // 创建测试证明
       const dto: CreateArtworkProofDto = {
         artworkHash,
-        signature
+        signature,
       }
       await this.createArtworkProof(dto)
 
       // 验证测试证明
       const verifyDto: VerifyArtworkOwnershipDto = {
         artworkHash,
-        ownerAddress: wallet.address
+        ownerAddress: wallet.address,
       }
       const result = await this.verifyArtworkOwnership(verifyDto)
       console.log('验证结果:', result)
@@ -125,12 +126,12 @@ export class ZkService {
   async createArtworkProof(dto: CreateArtworkProofDto) {
     try {
       this.logger.log('Creating artwork proof...')
-      
+
       const ownerAddress = ethers.verifyMessage(dto.artworkHash, dto.signature)
-      
+
       const { proof, publicSignals } = await ZKUtils.generateZKProof({
         sigHash: dto.signature,
-        artHash: dto.artworkHash
+        artHash: dto.artworkHash,
       })
 
       // 上链存证
@@ -138,13 +139,13 @@ export class ZkService {
         proof,
         publicSignals,
         artworkHash: dto.artworkHash,
-        pubKeyHash: ownerAddress
+        pubKeyHash: ownerAddress,
       })
 
       return {
         proof,
         publicSignals,
-        ownerAddress
+        ownerAddress,
       }
     } catch (error) {
       this.logger.error('Failed to create artwork proof', error.stack)
@@ -157,18 +158,38 @@ export class ZkService {
       this.logger.log('Verifying artwork ownership...')
       
       let onChainRecord: any = null
+      let recordType: 'zk' | 'traditional' = 'traditional'
+      let hasOnChainRecord: boolean | 'unknown' = false
       
       // 根据提供的参数选择验证模式
       if (dto.onChainRecord) {
         // 零知识模式：直接使用用户提供的链上记录
         onChainRecord = dto.onChainRecord
-        this.logger.debug('Using zero-knowledge mode with provided on-chain record')
+        recordType = 'zk'
+        hasOnChainRecord = 'unknown' // 零知识模式下不知道是否在链上
+        this.logger.debug(
+          'Using zero-knowledge mode with provided on-chain record',
+        )
       } else if (dto.artworkHash) {
         // 传统模式：从区块链查找记录
-        onChainRecord = await this.hederaService.findRecord(TopicType.ARTWORK, {
-          artworkHash: dto.artworkHash
+        const rawRecord = await this.hederaService.findRecord(TopicType.ARTWORK, {
+          artworkHash: dto.artworkHash,
         })
-        this.logger.debug('Using traditional mode, fetched on-chain record:', onChainRecord)
+        
+        if (rawRecord) {
+          // 将传统模式的记录转换为新的格式
+          onChainRecord = {
+            proof: rawRecord.proof,
+            publicSignals: rawRecord.publicSignals,
+            ownerAddress: rawRecord.pubKeyHash // 传统模式使用 pubKeyHash 作为 ownerAddress
+          }
+          hasOnChainRecord = true
+        }
+        
+        this.logger.debug(
+          'Using traditional mode, fetched on-chain record:',
+          onChainRecord,
+        )
       } else {
         throw new Error('Either artworkHash or onChainRecord must be provided')
       }
@@ -179,30 +200,38 @@ export class ZkService {
       }
 
       // 验证证明
-      const isValid = await ZKUtils.verifyProof(onChainRecord.proof, onChainRecord.publicSignals)
+      const isValid = await ZKUtils.verifyProof(
+        onChainRecord.proof,
+        onChainRecord.publicSignals,
+      )
       this.logger.debug('Proof verification result:', isValid)
       
       // 检查地址匹配（仅在提供了 ownerAddress 时进行）
-      let isOwner = true // 默认为 true，表示不验证所有权
+      let isOwner: string | boolean = 'Not verified' // 默认为 true，表示不验证所有权
       if (dto.ownerAddress) {
-        isOwner = onChainRecord.pubKeyHash.toLowerCase().trim() === dto.ownerAddress.toLowerCase().trim()
+        isOwner =
+          onChainRecord.ownerAddress.toLowerCase().trim() ===
+          dto.ownerAddress.toLowerCase().trim()
         this.logger.debug('Address match result:', isOwner)
         this.logger.debug('Expected address:', dto.ownerAddress)
-        this.logger.debug('Actual address:', onChainRecord.pubKeyHash)
+        this.logger.debug('Actual address:', onChainRecord.ownerAddress)
       } else {
-        this.logger.debug('Skipping address verification as ownerAddress is not provided')
+        this.logger.debug(
+          'Skipping address verification as ownerAddress is not provided',
+        )
       }
       
       return {
         isValid,
         isOwner,
-        hasOnChainRecord: true,
+        hasOnChainRecord,
         details: {
           expectedAddress: dto.ownerAddress,
-          actualAddress: onChainRecord.pubKeyHash,
+          actualAddress: onChainRecord.ownerAddress,
           proofValid: isValid,
-          addressVerified: !!dto.ownerAddress
-        }
+          addressVerified: !!dto.ownerAddress,
+          recordType
+        },
       }
     } catch (error) {
       this.logger.error('Failed to verify artwork ownership', error.stack)
@@ -210,26 +239,28 @@ export class ZkService {
     }
   }
 
-  async generateKeccak256Hash(file: Express.Multer.File): Promise<{ hash: string }> {
+  async generateKeccak256Hash(
+    file: Express.Multer.File,
+  ): Promise<{ hash: string }> {
     try {
       this.logger.log('Generating keccak256 hash from file...')
-      
+
       // 创建临时文件
       const tempDir = os.tmpdir()
       const tempFilePath = path.join(tempDir, file.originalname)
-      
+
       // 写入临时文件
       await fs.promises.writeFile(tempFilePath, file.buffer)
-      
+
       // 读取文件内容
       const fileContent = await fs.promises.readFile(tempFilePath)
-      
+
       // 生成哈希
       const hash = ethers.keccak256(fileContent)
-      
+
       // 删除临时文件
       await fs.promises.unlink(tempFilePath)
-      
+
       return { hash }
     } catch (error) {
       this.logger.error('Failed to generate keccak256 hash', error.stack)
@@ -237,21 +268,21 @@ export class ZkService {
     }
   }
 
-  async generateKeyPair(): Promise<{ 
-    address: string,
-    publicKey: string,
+  async generateKeyPair(): Promise<{
+    address: string
+    publicKey: string
     privateKey: string
   }> {
     try {
       this.logger.log('Generating key pair...')
-      
+
       // 生成随机钱包
       const wallet = ethers.Wallet.createRandom()
-      
+
       return {
         address: wallet.address,
         publicKey: wallet.publicKey,
-        privateKey: wallet.privateKey
+        privateKey: wallet.privateKey,
       }
     } catch (error) {
       this.logger.error('Failed to generate key pair', error.stack)
@@ -259,10 +290,10 @@ export class ZkService {
     }
   }
 
-  async downloadKeyPair(downloadToken: string): Promise<{ 
-    privateKey: string,
-    publicKey: string,
-    address: string 
+  async downloadKeyPair(downloadToken: string): Promise<{
+    privateKey: string
+    publicKey: string
+    address: string
   } | null> {
     const keyPair = this.keyPairs.get(downloadToken)
     if (keyPair) {
