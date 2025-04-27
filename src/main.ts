@@ -4,7 +4,6 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
 import { Logger, ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient } from '@hey-api/openapi-ts'
-import * as express from 'express';
 import { Reflector } from '@nestjs/core';
 
 const logger = new Logger('Main')

@@ -156,12 +156,22 @@ export class ZkService {
     try {
       this.logger.log('Verifying artwork ownership...')
       
-      // 先只根据 artworkHash 查找记录
-      const onChainRecord = await this.hederaService.findRecord(TopicType.ARTWORK, {
-        artworkHash: dto.artworkHash
-      })
-
-      this.logger.debug('On-chain record:', onChainRecord)
+      let onChainRecord: any = null
+      
+      // 根据提供的参数选择验证模式
+      if (dto.onChainRecord) {
+        // 零知识模式：直接使用用户提供的链上记录
+        onChainRecord = dto.onChainRecord
+        this.logger.debug('Using zero-knowledge mode with provided on-chain record')
+      } else if (dto.artworkHash) {
+        // 传统模式：从区块链查找记录
+        onChainRecord = await this.hederaService.findRecord(TopicType.ARTWORK, {
+          artworkHash: dto.artworkHash
+        })
+        this.logger.debug('Using traditional mode, fetched on-chain record:', onChainRecord)
+      } else {
+        throw new Error('Either artworkHash or onChainRecord must be provided')
+      }
 
       if (!onChainRecord) {
         this.logger.debug('No on-chain record found')
@@ -172,11 +182,16 @@ export class ZkService {
       const isValid = await ZKUtils.verifyProof(onChainRecord.proof, onChainRecord.publicSignals)
       this.logger.debug('Proof verification result:', isValid)
       
-      // 检查地址匹配
-      const isOwner = onChainRecord.pubKeyHash.toLowerCase().trim() === dto.ownerAddress.toLowerCase().trim()
-      this.logger.debug('Address match result:', isOwner)
-      this.logger.debug('Expected address:', dto.ownerAddress)
-      this.logger.debug('Actual address:', onChainRecord.pubKeyHash)
+      // 检查地址匹配（仅在提供了 ownerAddress 时进行）
+      let isOwner = true // 默认为 true，表示不验证所有权
+      if (dto.ownerAddress) {
+        isOwner = onChainRecord.pubKeyHash.toLowerCase().trim() === dto.ownerAddress.toLowerCase().trim()
+        this.logger.debug('Address match result:', isOwner)
+        this.logger.debug('Expected address:', dto.ownerAddress)
+        this.logger.debug('Actual address:', onChainRecord.pubKeyHash)
+      } else {
+        this.logger.debug('Skipping address verification as ownerAddress is not provided')
+      }
       
       return {
         isValid,
@@ -185,7 +200,8 @@ export class ZkService {
         details: {
           expectedAddress: dto.ownerAddress,
           actualAddress: onChainRecord.pubKeyHash,
-          proofValid: isValid
+          proofValid: isValid,
+          addressVerified: !!dto.ownerAddress
         }
       }
     } catch (error) {
