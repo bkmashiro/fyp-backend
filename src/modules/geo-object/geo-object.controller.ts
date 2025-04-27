@@ -13,11 +13,19 @@ import { CreateGeoObjectDto } from './dto/create-geo-object.dto'
 import { UpdateGeoObjectDto } from './dto/update-geo-object.dto'
 import { ApiTags, ApiQuery, ApiOperation } from '@nestjs/swagger'
 import { FindObjectsInBoundsDto } from './dto/find-objects-in-bounds.dto'
+import { QueryGeoObjectDto } from './dto/query-geo-object.dto'
 
 @Controller('geo-object')
 @ApiTags('geo-object')
 export class GeoObjectController {
   constructor(private readonly geoObjectService: GeoObjectService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Get all geo objects with pagination' })
+  @ApiQuery({ type: QueryGeoObjectDto })
+  async findAll(@Query() query: QueryGeoObjectDto) {
+    return this.geoObjectService.findAll(query)
+  }
 
   @Get('bounds')
   @ApiOperation({ summary: 'Find geo objects within specified bounds' })

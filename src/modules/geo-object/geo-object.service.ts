@@ -3,6 +3,7 @@ import { UpdateGeoObjectDto } from './dto/update-geo-object.dto'
 import { GeoObject } from './entities/geo-object.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Raw, Repository, Between } from 'typeorm'
+import { QueryGeoObjectDto } from './dto/query-geo-object.dto'
 
 @Injectable()
 export class GeoObjectService {
@@ -76,6 +77,32 @@ export class GeoObjectService {
         maxLon,
       })
     .leftJoinAndSelect('geoObject.cloudAnchor', 'cloudAnchor')
+
+    if (type) {
+      queryBuilder.andWhere('geoObject.type = :type', { type })
+    }
+
+    const [data, total] = await queryBuilder
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount()
+
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      data,
+      limit,
+      page,
+      total,
+      totalPages,
+    }
+  }
+
+  async findAll(query: QueryGeoObjectDto) {
+    const { page = 1, limit = 10, type } = query
+
+    const queryBuilder = this.geoObjectRepository.createQueryBuilder('geoObject')
+      .leftJoinAndSelect('geoObject.cloudAnchor', 'cloudAnchor')
 
     if (type) {
       queryBuilder.andWhere('geoObject.type = :type', { type })
