@@ -1,10 +1,15 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
-import { Logger, ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common'
+import {
+  Logger,
+  ValidationPipe,
+  ClassSerializerInterceptor,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createClient } from '@hey-api/openapi-ts'
-import { Reflector } from '@nestjs/core';
+import { Reflector } from '@nestjs/core'
+import { SpelunkerModule } from 'nestjs-spelunker'
 
 const logger = new Logger('Main')
 function simplifyOperationId(obj) {
@@ -28,6 +33,26 @@ function simplifyOperationId(obj) {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule)
+
+  // const tree = SpelunkerModule.explore(app, {
+  //   ignoreImports: [
+  //     /TypeOrmModule/,
+  //     // /AppModule/,
+  //     /AutoEntitiesModule/,
+  //     /TypeOrmCoreModule/,
+  //     /ConfigModule/,
+  //     /ConfigHostModule/,
+  //     /CacheModule/,
+  //   ],
+  // })
+  // const root = SpelunkerModule.graph(tree)
+  // const edges = SpelunkerModule.findGraphEdges(root)
+  // console.log('graph LR')
+  // const mermaidEdges = edges.map(
+  //   ({ from, to }) => `  ${from.module.name}-->${to.module.name}`,
+  // )
+  // console.log(mermaidEdges.join('\n'))
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
@@ -42,7 +67,7 @@ async function bootstrap() {
     new ClassSerializerInterceptor(app.get(Reflector), {
       excludeExtraneousValues: false,
     }),
-  );
+  )
   app.setGlobalPrefix('api')
   const configService = app.get(ConfigService)
 
@@ -57,7 +82,8 @@ async function bootstrap() {
       .build()
 
     const document = SwaggerModule.createDocument(app, config, {
-      operationIdFactory: (controllerKey: string, methodKey: string) => methodKey,
+      operationIdFactory: (controllerKey: string, methodKey: string) =>
+        methodKey,
     })
 
     // rewrite all method name
@@ -82,11 +108,11 @@ async function bootstrap() {
 
   app.enableCors({
     origin: ['https://fyp.yuzhes.com'], // 允许你的前端地址
-    credentials: true,                  // 如果你要传 cookie 或 token
-  });
+    credentials: true, // 如果你要传 cookie 或 token
+  })
 
-  const port = process.env.PORT || 3001;
-  await app.listen(port);
-  logger.log(`Application is running on port ${port}`);
+  const port = process.env.PORT || 3001
+  await app.listen(port)
+  logger.log(`Application is running on port ${port}`)
 }
 bootstrap()

@@ -15,7 +15,7 @@ import {
 @TableInheritance({ column: { type: 'varchar', name: 'type' } })
 export abstract class GeoObject extends GeoEntity {
   @Column({ type: 'varchar', select: true })
-  type: string;
+  type: string
 
   @Column({
     type: 'geometry',
@@ -37,6 +37,7 @@ export abstract class GeoObject extends GeoEntity {
   @ManyToOne(() => CloudAnchor, (cloudAnchor) => cloudAnchor.geoObjects, {
     nullable: true,
     eager: true,
+    onDelete: 'CASCADE',
   })
   cloudAnchor: CloudAnchor
 
