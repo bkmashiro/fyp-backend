@@ -140,13 +140,13 @@ export class ImageCopyrightService {
   }
 
   async findGeoImagesByMessagePrefix(prefix: string) {
-    if (prefix.length > 8) {
-      prefix = prefix.substring(0, 8);
+    if (prefix.length > 7) {
+      prefix = prefix.substring(0, 7);
     }
     return this.imageCopyrightRepository
       .createQueryBuilder('copyright')
       .leftJoinAndSelect('copyright.geoImage', 'geoImage')
-      .where('copyright.messagePrefix = :prefix', { prefix })
+      .where('copyright.messagePrefix LIKE :prefix', { prefix: `${prefix}%` })
       .getMany()
       .then(records => records.map(record => record.geoImage));
   }
