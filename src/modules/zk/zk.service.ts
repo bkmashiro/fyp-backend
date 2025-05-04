@@ -51,6 +51,7 @@ export class ZkService {
       const dto: CreateArtworkProofDto = {
         artworkHash,
         signature,
+        // 使用默认值：nonce 和 ttl 都不提供
       }
       await this.createArtworkProof(dto)
 
@@ -128,10 +129,21 @@ export class ZkService {
       this.logger.log('Creating artwork proof...')
 
       const ownerAddress = ethers.verifyMessage(dto.artworkHash, dto.signature)
+      
+      // 使用 TTL 计算有效期时间戳，默认14天
+      const currentTime = Math.floor(Date.now() / 1000)
+      const ttl = dto.ttl || 14 * 24 * 3600 // 默认14天
+      const validUntil = currentTime + ttl
+
+      // 生成默认 nonce（如果未提供）
+      const nonce = dto.nonce || ethers.hexlify(ethers.randomBytes(32))
 
       const { proof, publicSignals } = await ZKUtils.generateZKProof({
         sigHash: dto.signature,
         artHash: dto.artworkHash,
+        nonce,
+        validUntil: validUntil.toString(),
+        currentTime: currentTime.toString()
       })
 
       // 上链存证
@@ -140,12 +152,15 @@ export class ZkService {
         publicSignals,
         artworkHash: dto.artworkHash,
         pubKeyHash: ownerAddress,
+        validUntil
       })
 
       return {
         proof,
         publicSignals,
         ownerAddress,
+        validUntil,
+        nonce
       }
     } catch (error) {
       this.logger.error('Failed to create artwork proof', error.stack)
@@ -175,13 +190,16 @@ export class ZkService {
         const rawRecord = await this.hederaService.findRecord(TopicType.ARTWORK, {
           artworkHash: dto.artworkHash,
         })
+
+        console.log('rawRecord', rawRecord)
         
         if (rawRecord) {
           // 将传统模式的记录转换为新的格式
           onChainRecord = {
             proof: rawRecord.proof,
             publicSignals: rawRecord.publicSignals,
-            ownerAddress: rawRecord.pubKeyHash // 传统模式使用 pubKeyHash 作为 ownerAddress
+            ownerAddress: rawRecord.pubKeyHash, // 传统模式使用 pubKeyHash 作为 ownerAddress
+            validUntil: rawRecord.validUntil
           }
           hasOnChainRecord = true
         }
@@ -196,7 +214,15 @@ export class ZkService {
 
       if (!onChainRecord) {
         this.logger.debug('No on-chain record found')
-        return { isValid: false, isOwner: false, hasOnChainRecord: false }
+        return { 
+          isValid: false, 
+          isOwner: false, 
+          hasOnChainRecord: false,
+          details: {
+            recordType,
+            error: 'No on-chain record found'
+          }
+        }
       }
 
       // 验证证明
@@ -205,6 +231,15 @@ export class ZkService {
         onChainRecord.publicSignals,
       )
       this.logger.debug('Proof verification result:', isValid)
+      
+      // 检查有效期
+      const currentTime = Math.floor(Date.now() / 1000)
+      const isExpired = onChainRecord.validUntil <= currentTime
+      this.logger.debug('Proof expiration check:', { 
+        validUntil: onChainRecord.validUntil, 
+        currentTime,
+        isExpired 
+      })
       
       // 检查地址匹配（仅在提供了 ownerAddress 时进行）
       let isOwner: string | boolean = 'Not verified' // 默认为 true，表示不验证所有权
@@ -222,7 +257,7 @@ export class ZkService {
       }
       
       return {
-        isValid,
+        isValid: isValid && !isExpired, // 证明有效且未过期
         isOwner,
         hasOnChainRecord,
         details: {
@@ -230,7 +265,12 @@ export class ZkService {
           actualAddress: onChainRecord.ownerAddress,
           proofValid: isValid,
           addressVerified: !!dto.ownerAddress,
-          recordType
+          recordType,
+          expiration: {
+            validUntil: onChainRecord.validUntil,
+            currentTime,
+            isExpired
+          }
         },
       }
     } catch (error) {

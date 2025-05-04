@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, ValidateNested, IsArray, IsObject } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, ValidateNested, IsArray, IsObject, IsNumber, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateArtworkProofDto {
@@ -9,6 +9,15 @@ export class CreateArtworkProofDto {
   @IsString()
   @IsNotEmpty()
   signature: string;    // 用户对艺术品的签名
+
+  @IsString()
+  @IsOptional()
+  nonce?: string;    // 随机数（可选，用于交互式验证）
+
+  @IsNumber()
+  @IsOptional()
+  @Min(1)
+  ttl?: number;   // 证明的有效期（秒，可选，默认14天）
 }
 
 export class ZKProofDto {

@@ -7,6 +7,9 @@ interface ZKInput {
   [key: string]: string;
   sigHash: string;
   artHash: string;
+  nonce: string;
+  validUntil: string;
+  currentTime: string;
 }
 
 export class ZKUtils {

@@ -250,7 +250,7 @@ export class HederaService {
     return this.getTopicInfo(topicId)
   }
 
-  async submitToChain(type: TopicType, { proof, publicSignals, artworkHash, pubKeyHash }) {
+  async submitToChain(type: TopicType, { proof, publicSignals, artworkHash, pubKeyHash, validUntil }) {
     const topicId = this.getTopicId(type)
     await new TopicMessageSubmitTransaction()
       .setTopicId(topicId)
@@ -260,6 +260,7 @@ export class HederaService {
           pubKeyHash,
           proof,
           publicSignals,
+          validUntil
         }),
       )
       .execute(this.client)
